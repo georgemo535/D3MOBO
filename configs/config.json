@@ -1,0 +1,4 @@
+{"parameters": ["x1", "x2", "x3", "x4", "x5"], "dimx": 5, 
+"objectives": ["obj1", "obj2"], "dimobj": 2,
+"xbounds": [[0, 1], [0, 1], [0, 1], [0, 1], [0, 1]],
+"ybounds": [[-1, 1], [-1, 1]]}
