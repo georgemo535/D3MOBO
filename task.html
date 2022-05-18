@@ -3,26 +3,19 @@
 <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v6.js"></script>
+    <script src="scripts/sliders.js"></script>
 </head>
-<body>
+<body onload="renderTaskInterface()">
     <div class="icons">
         <img src="images/twitter.jpg" style="width:400px;height:300px;"></img>
     </div>
     <!-- <div class="wrapper"> -->
 
         <h>Design Parameters</h>
-        <div class="sliders">
+        <div id="param-sliders" class="sliders">
             <div class="slidecontainer">
-                <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="param1">
-                <p>Value: <span id="valueparam1"></span></p>
-                <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="param2">
-                <p>Value: <span id="valueparam2"></span></p>
-                <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="param3">
-                <p>Value: <span id="valueparam3"></span></p>
-                <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="param4">
-                <p>Value: <span id="valueparam4"></span></p>
-                <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="param5">
-                <p>Value: <span id="valueparam5"></span></p>
             </div>
         </div>
         <div id="evaluationbutton">
@@ -33,7 +26,31 @@
         </div>
     <!-- </div> -->
 
-    <script src="https://d3js.org/d3.v6.js"></script>
-    <script src="scripts/sliders.js"></script>
+
+    <!-- <script>
+        function constructParameterSlider() {
+        let jsonString = {"parameters": ["x1", "x2", "x3", "x4", "x5"], "dimx": 5, 
+                        "objectives": ["obj1", "obj2"], "dimobj": 2,
+                        "xbounds": [[0, 1], [0, 1], [0, 1], [0, 1], [0, 1]],
+                        "ybounds": [[-1, 1], [-1, 1]]}
+
+        // Parse json into data
+        // console.log(jsonString["parameters"]);
+        var numParams = jsonString["dimx"];
+        var xBounds = jsonString["xbounds"];
+
+        for (var i = 0; i < numParams; i++){
+            var inputTxt = "<input type='range' min=" + xBounds[i][0] + " max=" + xBounds[i][1] + " value='0.5' step='0.01' class='slider'"
+            + " id=" + "'param" + (i+1) + "slider'" + " name=" + "'param" + (i+1) + "'" + " oninput='this.nextElementSibling.value = this.value'>";
+            var outputTxt = "<output>0.5</output>"
+            var breakTxt = "<br><br>"
+
+            // console.log(inputTxt);
+            $("#param-sliders").append(inputTxt)
+            $("#param-sliders").append(outputTxt)
+            $("#param-sliders").append(breakTxt)
+        }
+    }</script> -->
+
 </body>
 </html>

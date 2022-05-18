@@ -17,35 +17,76 @@ var objectiveNames;
 var parameterBounds;
 var objectiveBounds;
 
-readTextFile("../configs/config.json", function(text){
-  config = JSON.parse(text);
-  numParams = config["dimx"];
-  numObjs = config["dimobj"];
-  parameterNames = config["parameters"];
-  objectiveNames = config["objectives"];
-  parameterBounds = config["xbounds"];
-  objectiveBounds = config["ybounds"];
+function renderMoboInterface() {
 
-  console.log(parameterNames);
+  readTextFile("../configs/config.json", function(text){
+    config = JSON.parse(text);
+    numParams = config["dimx"];
+    numObjs = config["dimobj"];
+    parameterNames = config["parameters"];
+    objectiveNames = config["objectives"];
+    parameterBounds = config["xbounds"];
+    objectiveBounds = config["ybounds"];
 
-  const svgWidth = 500;
-  const svgHeight = 350;
+    drawPcp();
+    drawScatter();
+    drawRegions();
+  });
+}
 
-  // set the dimensions and margins of the graph
-  const margin = {top: 20, right: 50, bottom: 20, left: 50},
-    width = svgWidth - margin.left - margin.right,
-    height = svgHeight - margin.top - margin.bottom;
+const svgWidth = 500;
+const svgHeight = 350;
 
-  // append the svg object to the body of the page
-  const svgPcp = d3.select("#pcp")
-  .append("svg")
+// set the dimensions and margins of the graph
+const margin = {top: 20, right: 50, bottom: 20, left: 50},
+  width = svgWidth - margin.left - margin.right,
+  height = svgHeight - margin.top - margin.bottom;
+
+const svgPcp = d3.select("#pcp")
+.append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+.append("g")
+  .attr("transform",
+        `translate(${margin.left},${margin.top})`);
+      
+const tooltipPcp = d3.select("#pcp")
+.append("div")
+.style("opacity", 1)
+.attr("class", "tooltip")
+.style("background-color", "white")
+.style("border", "solid")
+.style("border-width", "1px")
+.style("border-radius", "5px")
+.style("padding", "10px")
+
+const svgScatter = d3.select("#scatter")
+.append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
-  .append("g")
+.append("g")
     .attr("transform",
-          `translate(${margin.left},${margin.top})`);
-        
-  const tooltipPcp = d3.select("#pcp")
+        "translate(" + margin.left + "," + margin.top + ")");
+
+const tooltipScatter = d3.select("#scatter")
+.append("div")
+.style("opacity", 1)
+.attr("class", "tooltip")
+.style("background-color", "white")
+.style("border", "solid")
+.style("border-width", "1px")
+.style("border-radius", "5px")
+.style("padding", "10px")
+
+const svgRegions = d3.select("#regions")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform",
+  "translate(" + margin.left + "," + margin.top + ")");
+  
+const tooltipRegions = d3.select("#regions")
   .append("div")
   .style("opacity", 1)
   .attr("class", "tooltip")
@@ -54,6 +95,9 @@ readTextFile("../configs/config.json", function(text){
   .style("border-width", "1px")
   .style("border-radius", "5px")
   .style("padding", "10px")
+
+function drawPcp() {
+  // append the svg object to the body of the page
       
   d3.csv("../data/data.csv").then( function(data) {
     dimensionsPcp = parameterNames;
@@ -64,7 +108,6 @@ readTextFile("../configs/config.json", function(text){
         .domain( parameterBounds[i] )
         .range([height, 0])
     }
-
     xPcp = d3.scalePoint()
       .range([0, width])
       .domain(dimensionsPcp);
@@ -87,15 +130,15 @@ readTextFile("../configs/config.json", function(text){
         .style("opacity", "1")
         .style("stroke-width", "4")
       
-        let idVal = d3.select(this).attr("value");
+      let idVal = d3.select(this).attr("value");
 
-        svgScatter.selectAll(".dot").
-        filter(function() {
-            return d3.select(this).attr("value") == idVal
-        }).transition()
-          .duration(200)
-          .style("fill", "green")
-          .attr("r", 7)
+      svgScatter.selectAll(".dot").
+      filter(function() {
+          return d3.select(this).attr("value") == idVal
+      }).transition()
+        .duration(200)
+        .style("fill", "green")
+        .attr("r", 7)
 
       tooltipPcp.html("Design parameters: " + String(d3.select(this).attr("design")))
         .transition()
@@ -134,6 +177,45 @@ readTextFile("../configs/config.json", function(text){
         .attr("r", 5 )
     }
 
+    const onClickDesign = function(event, d){
+      d3.select("#pcp").selectAll(".line")
+        .transition().duration(200)
+        .style("stroke", "lightgrey")
+        .style("opacity", "0.5")
+      
+      d3.select("#scatter").selectAll(".dot")
+        .transition()
+        .duration(200)
+        .style("fill", "lightgrey")
+        .attr("r", 3)
+
+      d3.select(this)
+        .transition().duration(200)
+        .style("stroke", "green")
+        .style("opacity", "1")
+        .style("stroke-width", "4")
+
+      let idVal = d3.select(this).attr("value");
+
+      svgScatter.selectAll(".dot").
+      filter(function() {
+          return d3.select(this).attr("value") == idVal
+      }).transition()
+        .duration(200)
+        .style("fill", "green")
+        .attr("r", 7)
+
+      let parameterValues = JSON.parse("[" + d3.select(this).attr("design") + "]");
+      
+      // console.log(parameterValues);
+      for (var i = 0; i < numParams; i++){
+        // console.log(parameterValues[i]);
+        parent.task.document.getElementById('param' + (i+1) + 'slider').value = parameterValues[i];
+        parent.task.document.getElementById('param' + (i+1) + 'output').value = parameterValues[i];
+      }
+      
+    }
+
     function pathPcp(d) {
       const line = d3.line()(dimensionsPcp.map(function(p) { return [xPcp(p), yPcp[p](d[p])]; }));
       return line;
@@ -153,6 +235,7 @@ readTextFile("../configs/config.json", function(text){
         .style("stroke-width", "2")
         .on("mouseover", highlightPcp)
         .on("mouseout", doNotHighlightPcp)
+        .on("click", onClickDesign)
 
     svgPcp.selectAll("myAxis")
       .data(dimensionsPcp).enter()
@@ -167,25 +250,9 @@ readTextFile("../configs/config.json", function(text){
           .style("fill", "black")
 
   })
+}
 
-  const svgScatter = d3.select("#scatter")
-  .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-      .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
-
-  const tooltipScatter = d3.select("#scatter")
-  .append("div")
-  .style("opacity", 1)
-  .attr("class", "tooltip")
-  .style("background-color", "white")
-  .style("border", "solid")
-  .style("border-width", "1px")
-  .style("border-radius", "5px")
-  .style("padding", "10px")
-
+function drawScatter() {
   d3.csv("../data/data.csv").then( function(data) {
     const x = d3.scaleLinear()
         .domain(objectiveBounds[0])
@@ -290,25 +357,9 @@ readTextFile("../configs/config.json", function(text){
       .attr("x", -margin.top - height/2 + 20)
       .text(objectiveNames[1]);
   })
+}
 
-  const svgRegions = d3.select("#regions")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform",
-    "translate(" + margin.left + "," + margin.top + ")");
-    
-  const tooltipRegions = d3.select("#regions")
-    .append("div")
-    .style("opacity", 1)
-    .attr("class", "tooltip")
-    .style("background-color", "white")
-    .style("border", "solid")
-    .style("border-width", "1px")
-    .style("border-radius", "5px")
-    .style("padding", "10px")
-
+function drawRegions() {
   d3.csv("../data/regions.csv").then( function(data) {
 
     dimensions = parameterNames;
@@ -437,4 +488,4 @@ readTextFile("../configs/config.json", function(text){
     output.innerHTML = this.value;
   }
 
-});
+}
