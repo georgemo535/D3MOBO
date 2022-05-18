@@ -511,10 +511,12 @@ async function drawRegionPlot() {
       return dPt;
       })
   .enter()
-  .append("circle")      
+  .append("circle")    
     .attr("cx", function (d) { return d.x; } )
     .attr("cy", function (d) { return (1 - d.y)*height; } )
-    .attr("value", function(d) {return d.id; })
+    .attr("class", function (d) { return "dot" } )
+    .attr("regionid", function(d) {return d.id; })
+    .attr("pointid", function(d) {return d.value + "dim" + d.x + "id" + d.id; })
     .style("fill", "lightblue" )
     .attr("r", 5)
     
@@ -522,17 +524,49 @@ async function drawRegionPlot() {
     .selectAll("circle")
     .call(d3.drag()
     .on('drag', function(event, d) {            
-        var yVal = +d.y - (1 - y.invert(event.y));                        
-        d3.select(this).attr('cy', function (d) { return (1 - yVal)*height; })
+        var yVal = +d.y - (1 - y.invert(event.y));
+        // console.log(pointID);
+        if (d.value == "upper"){
+          var lowerBound = svgRegions.selectAll(".dot")
+          .filter(function() {
+              return d3.select(this).attr("pointid") == "lower" + "dim" + d.x + "id" + d.id;
+          }).attr("cy");
+          var newY = Math.min((1 - yVal) * height, lowerBound - 0.05 * height);
+          // console.log(newY);
+          d3.select(this).attr('cy', function(d) {return Math.max(0, newY); })
+        } else {
+          var upperBound = svgRegions.selectAll(".dot")
+          .filter(function() {
+              return d3.select(this).attr("pointid") == "upper" + "dim" + d.x + "id" + d.id;
+          }).attr("cy");
+          // console.log(upperBound);
+          var newY = Math.max((1 - yVal) * height, Number(upperBound) + 0.05 * Number(height));
+          // console.log(newY);
+          d3.select(this).attr('cy', function(d) {return Math.min(height, newY); })
+        }
+        // d3.select(this).attr('cy', function (d) { return (1 - yVal)*height; })
 
     })
     .on("end", function(event, d) {
-        d.y = +d.y - (1 - y.invert(event.y));            
-        if (d.value == "upper") {
-            regionData[d.id-1].upperBound[d.x/100] = d.y;
+        var yVal = +d.y - (1 - y.invert(event.y));
+        d.y = +d.y - (1 - y.invert(event.y));
+        // console.log(pointID);
+        if (d.value == "upper"){
+          var lowerBound = svgRegions.selectAll(".dot")
+          .filter(function() {
+              return d3.select(this).attr("pointid") == "lower" + "dim" + d.x + "id" + d.id;
+          }).attr("cy");
+          var lowerBoundConvert = 1 - lowerBound / height + 0.05;
+          regionData[d.id-1].upperBound[d.x/100] = Math.min(1, Math.max(yVal, lowerBoundConvert));
+          // d3.select(this).attr('cy', function(d) {return Math.max(0, Math.min((1 - yVal) * height, lowerBound)); })
         } else {
-            regionData[d.id-1].lowerBound[d.x/100] = d.y;
-        }
+          var upperBound = svgRegions.selectAll(".dot")
+          .filter(function() {
+              return d3.select(this).attr("pointid") == "upper" + "dim" + d.x + "id" + d.id;
+          }).attr("cy");
+          var upperBoundConvert = 1 - upperBound / height - 0.05;
+          regionData[d.id-1].lowerBound[d.x/100] = Math.max(0, Math.min(yVal, upperBoundConvert));
+        }        
         
         svgRegions
             .selectAll("myPath")                
