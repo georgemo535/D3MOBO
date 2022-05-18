@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    <!-- <div class="wrapper"> -->
+    <table>
+        <tr>
+            <td><div id="pcp"></div></td>
+            <td><div id="scatter"></div></td>
+        </tr>
+        <tr>
+            <td><div id="regions"></div></td>
+            <td>
+                <table>
+                <tr><td>
+                <form action="#">
+                    <label for="forbiddenlabel">Forbidden Regions</label>
+                    <select name="regionslist" id="regionslist" size="10">
+                      <option value="region1">1</option>
+                      <option value="region2">2</option>
+                    </select>
+                </form>
+                </td><td>
+                <form action="#">
+                    <label for="upperboundlabel">Upper Bounds: </label>
+                        <div style="float:left">
+                            <label for="x1uplabel">x1: </label>
+                            <input type="number" id="x1upinput" name="x1upinput" min="0" max="1" step=".01">
+                            <br>
+                            <label for="x2uplabel">x2: </label>
+                            <input type="number" id="x2upinput" name="x2upinput" min="0" max="1" step=".01">
+                            <br>
+                            <label for="x3uplabel">x3: </label>
+                            <input type="number" id="x3upinput" name="x3upinput" min="0" max="1" step=".01">
+                            <br>
+                            <label for="x4uplabel">x4: </label>
+                            <input type="number" id="x4upinput" name="x4upinput" min="0" max="1" step=".01">
+                            <br>
+                            <label for="x5uplabel">x5: </label>
+                            <input type="number" id="x5upinput" name="x5upinput" min="0" max="1" step=".01">
+                        </div>
+                </form>
+                <br><br><br><br><br><br>
+                <form action="#">
+                    <label for="lowerboundlabel">Lower Bounds: </label>
+                        <div style="float:left">
+                            <label for="x1lowlabel">x1: </label>
+                            <input type="number" id="x1lowinput" name="x1lowinput" min="0" max="1" step=".01">
+                            <br>
+                            <label for="x2lowlabel">x2: </label>
+                            <input type="number" id="x2lowinput" name="x2lowinput" min="0" max="1" step=".01">
+                            <br>
+                            <label for="x3lowlabel">x3: </label>
+                            <input type="number" id="x3lowinput" name="x3lowinput" min="0" max="1" step=".01">
+                            <br>
+                            <label for="x4lowlabel">x4: </label>
+                            <input type="number" id="x4lowinput" name="x4lowinput" min="0" max="1" step=".01">
+                            <br>
+                            <label for="x5lowlabel">x5: </label>
+                            <input type="number" id="x5lowinput" name="x5lowinput" min="0" max="1" step=".01">
+                        </div>
+                </form>
+                </td><td>
+                <!-- <br><br><br><br><br><br><br> -->
+                <div class="slider">
+                    <div class="slidecontainer">
+                        <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="confidenceslider">
+                        <p>Confidence Value: <span id="confidenceslidervalue"></span></p>
+                    </div>
+                </div>
+                <br><br><br><br><br>
+                <button class="button">Input New Values</button>
+                <button class="button">Add New Forbidden Region</button>
+                <button class="button">Delete</button>
+                </td>
+                </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+        
+        
+        <!-- <div id="toggle">
+
+        </div> -->
+        <div id="mobobutton">
+            <button class="button">Get New Design from MOBO</button>
+        </div>
+    <!-- </div> -->
+    <script src="https://d3js.org/d3.v6.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+</html>

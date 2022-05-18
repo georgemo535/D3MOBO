@@ -28,10 +28,13 @@ readTextFile("../configs/config.json", function(text){
 
   console.log(parameterNames);
 
+  const svgWidth = 500;
+  const svgHeight = 350;
+
   // set the dimensions and margins of the graph
   const margin = {top: 20, right: 50, bottom: 20, left: 50},
-    width = 500 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    width = svgWidth - margin.left - margin.right,
+    height = svgHeight - margin.top - margin.bottom;
 
   // append the svg object to the body of the page
   const svgPcp = d3.select("#pcp")
@@ -343,7 +346,7 @@ readTextFile("../configs/config.json", function(text){
       regionPath += 0 + " " + (1 - d.x1up)*height;
       regionPath += " Z";
       return regionPath;
-    }
+    }    
 
     const highlightArea = function(event, d){
       // console.log(svgScatter.selectAll(".dot"));
@@ -399,9 +402,18 @@ readTextFile("../configs/config.json", function(text){
       .attr("value", function (d) {return d.id; })
       .attr("confidence", function (d) {return d.confidence; })
       .style("fill", "lightblue" )
-      .style("opacity", d => d.confidence * 0.7 + 0.3)
+      .style("opacity", d => d.confidence * 0.7 + 0.3)    
     .on("mouseover", highlightArea)
     .on("mouseout", doNotHighlightArea)
+
+    svgRegions
+    .selectAll("myPath")
+    .data(data).enter()
+    .append("circle")
+      .attr("cx", function (d) { return 0; } )
+      .attr("cy", function (d) { return 0; } )
+      .style("fill", "green" )
+      .attr("r", 5)
 
     // Draw the axis:
     svgRegions.selectAll("myAxis")
