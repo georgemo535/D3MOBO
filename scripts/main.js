@@ -17,6 +17,9 @@ var objectiveNames;
 var parameterBounds;
 var objectiveBounds;
 
+var renderRegionPlot;
+var regionData;
+
 function renderMoboInterface() {
 
   readTextFile("../configs/config.json", function(text){
@@ -30,7 +33,12 @@ function renderMoboInterface() {
 
     drawPcp();
     drawScatter();
-    drawRegionPlot();
+    renderRegionPlot = drawRegionPlot();
+    renderRegionList();
+
+    document.getElementById('confidence-slider').value = 0.5;
+    document.getElementById('confidence-slider').disabled = true;
+    document.getElementById('confidence-slider-value').value = "";
   });
 }
 
@@ -372,9 +380,39 @@ async function parseRegions(filepath) {
   return data;
 }
 
+const highlightArea = function(event, d){
+  // console.log(svgScatter.selectAll(".dot"));
+  d3.select("#regions").selectAll(".area")
+    .transition()
+    .duration(200)
+    .style("fill", "lightgrey")
+    .style("opacity", d => d.confidence * 0.5 + 0.2)
+
+  d3.select(this)
+    .transition()
+    .duration(200)
+    .style("fill", "blue")
+    .style("opacity", d3.select(this).attr("confidence") * 0.7 + 0.3)
+  
+  tooltipRegions.html("ID: " + d3.select(this).attr("value"))
+    .transition()
+    .duration(500)
+    .style("opacity", 1)
+    .style("left", (event.x) / 2 + "px")
+    .style("top", (event.y) / 2 + "px")
+}
+
+const doNotHighlightArea = function(event, d){
+  d3.select("#regions").selectAll(".area")
+    .transition()
+    .duration(200)
+    .style("fill", "lightgrey")
+    .style("opacity", d => d.confidence * 0.5 + 0.2)
+}
+
 async function drawRegionPlot() {
-  var regionData = await parseRegions("../data/regions.csv");
-  console.log(regionData);
+  regionData = await parseRegions("../data/regions.csv");
+  // console.log(regionData);
 
   dimensions = parameterNames;
   dimensionsPcp = parameterNames;
@@ -428,37 +466,6 @@ async function drawRegionPlot() {
     return regionPath;
 
   }    
-
-  const highlightArea = function(event, d){
-    // console.log(svgScatter.selectAll(".dot"));
-    d3.select("#regions").selectAll(".area")
-      .transition()
-      .duration(200)
-      .style("fill", "lightgrey")
-      .style("opacity", 0.5)
-
-    d3.select(this)
-      .transition()
-      .duration(200)
-      .style("fill", "blue")
-      .style("opacity", d3.select(this).attr("confidence") * 0.7 + 0.3)
-    
-    tooltipRegions.html("ID: " + d3.select(this).attr("value"))
-      .transition()
-      .duration(500)
-      .style("opacity", 1)
-      .style("left", (event.x) / 2 + "px")
-      .style("top", (event.y) / 2 + "px")
-  }
-
-  const doNotHighlightArea = function(event, d){
-    d3.select("#regions").selectAll(".area")
-      .transition()
-      .duration(200)
-      .style("fill", "lightblue")
-      .style("opacity", d => d.confidence * 0.7 + 0.3)
-  }
-
   // Draw the areas
   svgRegions
   .selectAll("myPath")
@@ -470,10 +477,12 @@ async function drawRegionPlot() {
     .attr("lower", d => d.lowerBound)
     .attr("value", function (d) {return d.id; })
     .attr("confidence", function (d) {return d.confidence; })
-    .style("fill", "lightblue" )
-    .style("opacity", d => d.confidence * 0.7 + 0.3)    
+    .attr("selected", false)
+    .style("fill", "lightgrey" )
+    .style("opacity", d => d.confidence * 0.5 + 0.2)    
   .on("mouseover", highlightArea)
   .on("mouseout", doNotHighlightArea)
+  .on("click", selectRegion)
 
   // Draw the axis:
   svgRegions.selectAll("myAxis")
@@ -518,7 +527,7 @@ async function drawRegionPlot() {
     .attr("regionid", function(d) {return d.id; })
     .attr("pointid", function(d) {return d.value + "dim" + d.x + "id" + d.id; })
     .style("fill", "lightblue" )
-    .attr("r", 5)
+    .attr("r", 0)
     
   svgRegions
     .selectAll("circle")
@@ -544,7 +553,6 @@ async function drawRegionPlot() {
           // console.log(newY);
           d3.select(this).attr('cy', function(d) {return Math.min(height, newY); })
         }
-        // d3.select(this).attr('cy', function (d) { return (1 - yVal)*height; })
 
     })
     .on("end", function(event, d) {
@@ -558,7 +566,7 @@ async function drawRegionPlot() {
           }).attr("cy");
           var lowerBoundConvert = 1 - lowerBound / height + 0.05;
           regionData[d.id-1].upperBound[d.x/100] = Math.min(1, Math.max(yVal, lowerBoundConvert));
-          // d3.select(this).attr('cy', function(d) {return Math.max(0, Math.min((1 - yVal) * height, lowerBound)); })
+
         } else {
           var upperBound = svgRegions.selectAll(".dot")
           .filter(function() {
@@ -577,3 +585,177 @@ async function drawRegionPlot() {
       })
     );
 }
+
+async function renderRegionList() {
+  console.log("Loading forbidden regions")
+
+  var regionData = await parseRegions("../data/regions.csv");
+  var numberForbiddenRegions = regionData.length;
+  
+  for (var i = 0; i < numberForbiddenRegions; i++){
+    var inputTxt = "<input type='radio' id='forbiddentick" + (i+1) +  "' name='forbiddentick' value=" + (i+1) + ">"
+    var labelTxt = "<label for='forbidden" + (i+1) + "'>" + (i+1) + "</label><br>"
+
+    $("#forbidden-list").append(inputTxt)
+    $("#forbidden-list").append(labelTxt)
+  }
+
+  let radios = document.querySelectorAll('input[type=radio]');
+  for (i=0; i < radios.length; i++){
+    radios[i].onclick = function(e) {
+      if (e.ctrlKey) {
+        this.checked = false;
+      }
+    }
+  }
+
+  radios.forEach(function(elem) {
+    elem.addEventListener("click", updateShownRegion);
+    // elem.addEventListener("deselct", doNotShowRegion)
+  })
+
+  let clearSelection = document.getElementById("clear-selection-button");
+  clearSelection.addEventListener("click", clearAllForbiddenSelection)
+}
+
+function updateShownRegion() {
+  // console.log(this.checked);
+  // console.log(this);
+  var selectedRegionID = this.value;
+  var correspondingRegion = svgRegions.selectAll(".area")
+      .filter(function() {
+          return d3.select(this).attr("value") == selectedRegionID;
+      })
+  
+  var dragPoints = svgRegions.selectAll(".dot")
+  .filter(function() {
+      return d3.select(this).attr("regionid") == selectedRegionID;
+  });
+
+  if (this.checked) {
+    // console.log(correspondingRegion.attr("confidence"));
+    svgRegions.selectAll(".area").transition()
+    .duration(200)
+    .style("fill", "lightgrey")
+    .style("opacity", correspondingRegion.attr("confidence") * 0.5 + 0.2);
+
+    correspondingRegion.transition()
+      .duration(200)
+      .style("fill", "blue")
+      .style("opacity", correspondingRegion.attr("confidence") * 0.7 + 0.3);
+    
+    svgRegions.selectAll(".dot").attr("r", 0);
+    dragPoints.attr("r", 5);
+
+    svgRegions.selectAll(".area").on("mouseover", null);
+    svgRegions.selectAll(".area").on("mouseout", null);
+
+    document.getElementById('confidence-slider').disabled = false;
+    document.getElementById('confidence-slider').value = correspondingRegion.attr("confidence");
+    document.getElementById('confidence-slider-value').value = correspondingRegion.attr("confidence");
+
+    // console.log(regionData);
+    // regionData[selectedRegionID-1].confidence = document.getElementById('confidence-slider').value;
+
+  } else {
+    svgRegions.selectAll(".area").transition()
+    .duration(200)
+    .style("fill", "lightgrey")
+    .style("opacity", d => d.confidence * 0.5 + 0.2);
+
+    svgRegions.selectAll(".dot").attr("r", 0);
+
+    svgRegions.selectAll(".area").on("mouseover", highlightArea);
+    svgRegions.selectAll(".area").on("mouseout", doNotHighlightArea);
+
+    document.getElementById('confidence-slider').value = 0.5;
+    document.getElementById('confidence-slider').disabled = true;
+    document.getElementById('confidence-slider-value').value = "";
+  }
+
+  let slider = document.getElementById('confidence-slider');
+  slider.addEventListener("mouseup", updateConfidenceSlider);
+
+}
+
+function updateConfidenceSlider() {
+  let radios = document.querySelectorAll('input[type=radio]');
+  var selectedID;
+  for (i=0; i < radios.length; i++){
+    if (radios[i].checked){
+      selectedID = i+1;
+    }
+  }
+  // console.log(selectedID);
+
+  var correspondingRegion = svgRegions.selectAll(".area")
+      .filter(function() {
+          return d3.select(this).attr("value") == selectedID;
+      })
+
+  regionData[selectedID-1].confidence = this.value;
+  correspondingRegion.attr("confidence", this.value);
+  correspondingRegion.transition()
+    .duration(200)
+    .style("fill", "blue")
+    .style("opacity", correspondingRegion.attr("confidence") * 0.7 + 0.3);
+
+  // console.log(regionData);
+}
+
+const selectRegion = function(event, d){
+  var regionID = d3.select(this).attr("value");
+
+  d3.select("#regions").selectAll(".area")
+    .style("fill", "lightgrey")
+    .style("opacity", d => d.confidence * 0.5 + 0.2)
+
+  d3.select(this)
+    .style("fill", "blue")
+    .style("opacity", d3.select(this).attr("confidence") * 0.7 + 0.3)
+
+  svgRegions.selectAll(".area").on("mouseover", null);
+  svgRegions.selectAll(".area").on("mouseout", null);
+
+  svgRegions.selectAll(".dot").attr("r", 0);
+
+  var dragPoints = svgRegions.selectAll(".dot")
+  .filter(function() {
+      return d3.select(this).attr("regionid") == regionID;
+  });
+
+  dragPoints.attr("r", 5);
+  
+  let radios = document.querySelectorAll('input[type=radio]');
+  for (i=0; i < radios.length; i++){
+    if (radios[i].value == regionID){
+      radios[i].checked = true;
+    }
+  }
+
+  document.getElementById('confidence-slider').disabled = false;
+  document.getElementById('confidence-slider').value = d3.select(this).attr("confidence");
+  document.getElementById('confidence-slider-value').value = d3.select(this).attr("confidence");
+}
+
+function clearAllForbiddenSelection(){
+  let radios = document.querySelectorAll('input[type=radio]');
+  for (i=0; i < radios.length; i++){
+    radios[i].checked = false;
+  }
+
+  svgRegions.selectAll(".area").transition()
+    .duration(200)
+    .style("fill", "lightgrey")
+    .style("opacity", d => d.confidence * 0.5 + 0.2);
+
+  svgRegions.selectAll(".dot").attr("r", 0);
+
+  svgRegions.selectAll(".area").on("mouseover", highlightArea);
+  svgRegions.selectAll(".area").on("mouseout", doNotHighlightArea);
+
+  document.getElementById('confidence-slider').value = 0.5;
+  document.getElementById('confidence-slider').disabled = true;
+  document.getElementById('confidence-slider-value').value = "";
+}
+
