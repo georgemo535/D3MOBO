@@ -6,6 +6,92 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://d3js.org/d3.v6.js"></script>
     <script src="scripts/sliders.js"></script>
+    <script>
+        const TestType = {            
+            FORMAL: 0,
+            PILOT: 1,
+        };
+
+        function runPilotTest() {
+            console.log("runPilotTest");
+            var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
+            $('#test-result').html(progressBarHtml);
+
+            var paramVals = [];
+            $(".slider").each(function () {
+                // console.log($(this));
+                var name = $(this).prop('name');
+                var val = $(this).val();
+                console.log(name + ": " + val);
+                paramVals.push(val);
+            });
+
+            getTestResult(paramVals,TestType.PILOT);
+
+            var waitTime = 1; //s, this should be the same as in the python script
+            var progressStep = 1 / waitTime * 10;
+            var progressVal = 0;
+            const progressInterval = setInterval(function () {
+                $('#test-progress').val(progressVal);
+                progressVal += progressStep; 
+                if (progressVal > 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 100);
+        }
+
+        function runFormalTest() {
+            console.log("runFormalTest");
+            var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
+            $('#test-result').html(progressBarHtml);
+            $('.button').prop('disabled', true);
+
+            var paramVals = [];
+            $(".slider").each(function () {
+                // console.log($(this));
+                var name = $(this).prop('name');
+                var val = $(this).val();
+                console.log(name + ": " + val);
+                paramVals.push(val);
+            });
+
+            getTestResult(paramVals,TestType.FORMAL);
+
+            var waitTime = 5; //s, this should be the same as in the python script
+            var progressStep = 1 / waitTime * 10;
+            var progressVal = 0;
+            const progressInterval = setInterval(function () {
+                $('#test-progress').val(progressVal);
+                progressVal += progressStep; 
+                if (progressVal > 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 100);
+        }
+
+        function getTestResult(paramVals,testType) {
+            var paramValsJson = JSON.stringify(paramVals);
+            $.ajax({
+                url: "/cgi/dummy_task_model.py",
+                type: "post",
+                datatype:"json",                    
+                data: { 'param_vals'        :paramValsJson,
+                        'test_type'         :testType },                    
+                success: function(result) {
+                    submitReturned = true;
+                    // console.log(result.message);
+                    var objVals = JSON.parse(result.message).obj_vals
+                    console.log(objVals);
+                    // TODO handle returned objVals
+                    $('#test-result').html(objVals[0] + " , " + objVals[1]);
+                    $('.button').prop('disabled', false);
+                },
+                error: function(result){
+                    console.log("Error in getTestResult: " + result.message);
+                }
+            });
+        }
+    </script>
 </head>
 <body onload="renderTaskInterface();">
     <div class="icons">
@@ -19,11 +105,12 @@
             </div>
         </div>
         <div id="evaluationbutton">
-            <button class="button">Perform Formal Evaluation</button>
+            <button class="button" onclick="runFormalTest()">Perform Formal Evaluation</button>
         </div>
         <div id="testbutton">
-            <button class="button">Perform Pilot Testing</button>
-        </div>
+            <button class="button" onclick="runPilotTest()">Perform Pilot Testing</button>
+        </div>        
+        <div id="test-result"></div>
     <!-- </div> -->
 
 
