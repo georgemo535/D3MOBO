@@ -1,4 +1,4 @@
-#! C:/Python310/python.exe
+#! /home/george/anaconda3/bin/python
 
 # This function manages the interface with the task or task model
 
@@ -11,7 +11,7 @@ import time
 import random
 
 # Initialize the basic reply message
-message = "Necessary objets imported."
+message = "Necessary objects imported."
 success = True
 
 # Read provided formData
