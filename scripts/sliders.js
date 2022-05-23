@@ -19,7 +19,6 @@ function renderTaskInterface() {
         numParams = config["dimx"];
         xBounds = config["xbounds"];
 
-        console.log(xBounds);
         constructParameterSlider();
     });
 }

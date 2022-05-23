@@ -22,6 +22,8 @@ var regionData;
 var evaluatedDesigns;
 var forbidRangeData;
 
+var designLineData = [{id: "current", x1: 0.5, x2: 0.5, x3: 0.5, x4: 0.5, x5: 0.5}]
+
 async function renderMoboInterface() {
 
   readTextFile("../configs/config.json", async function(text){
@@ -50,18 +52,13 @@ async function renderMoboInterface() {
     document.getElementById('button-delete-forbidden').disabled = true;
     document.getElementById('button-delete-forbidden').addEventListener("click", deleteForbiddenRegion);
 
-    // // Draw the add forbidden range buttons
-    // var svgRegionParent = document.getElementById("regions");
-    
-    // for (var i = 0; i < numParams; i++){
-    //   var regionID = regionData[i].id;
-    //   // console.log(regionID);
-    //   var inputTxt = "<input type='radio' id='forbiddentick" + regionID +  "' name='forbiddentick' value=" + regionID + ">"
-    //   var labelTxt = "<label for='forbidden" + regionID + "'>" + (i+1) + "</label><br>"
+    parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+    parent.task.document.getElementById('test-button').addEventListener("click", runPilotTest);
 
-    //   $("#forbidden-list").append(inputTxt)
-    //   $("#forbidden-list").append(labelTxt)
-    // }
+    for (var i = 0; i < numParams; i++){
+      parent.task.document.getElementById('param' + (i+1) + 'slider').addEventListener("input", drawGuidingLine);
+    }
+
   });
 }
 
@@ -163,6 +160,143 @@ async function parseRanges(filepath) {
   return data;
 }
 
+// Function to highlight PCP line when hovered over
+const highlightPcp = function(event, d){
+  d3.select("#pcp").selectAll(".line")
+    .filter(function(){
+    return d3.select(this).attr("value") != "current";
+    })
+    .transition().duration(200)
+    .style("stroke", "lightgrey")
+    .style("opacity", "0.5")
+  
+  d3.select("#scatter").selectAll(".dot")
+    .transition()
+    .duration(200)
+    .style("fill", "lightgrey")
+    .attr("r", 3)
+
+  d3.select(this)
+    .transition().duration(200)
+    .style("stroke", "green")
+    .style("opacity", "1")
+    .style("stroke-width", "4")
+  
+  d3.select(this).raise();
+  
+  let idVal = d3.select(this).attr("value");
+
+  svgScatter.selectAll(".dot").
+  filter(function() {
+      return d3.select(this).attr("value") == idVal
+  }).transition()
+    .duration(200)
+    .style("fill", "green")
+    .attr("r", 7)
+
+  tooltipPcp.html("Design parameters: " + String(d3.select(this).attr("design")))
+    .transition()
+    .duration(500)
+    .style("opacity", 1)
+    .style("left", (event.x) / 2 + "px")
+    .style("top", (event.y) / 2 + "px")
+    
+  let objectivesDesign = svgScatter.selectAll(".dot").
+  filter(function(){
+    return d3.select(this).attr("value") == idVal;
+  }).attr("objectives");
+
+  console.log(objectivesDesign);
+
+  tooltipScatter.html("Objectives: " + String(objectivesDesign))
+  .transition()
+  .duration(500)
+  .style("opacity", 1)
+  .style("left", (event.x) / 2 + "px")
+  .style("top", (event.y) / 2 + "px")
+
+}
+
+// Function to not highlight PCP line when not hovered over
+const doNotHighlightPcp = function(event, d){
+  d3.select("#pcp").selectAll(".line")
+    .filter(function(){
+      return d3.select(this).attr("value") != "current";
+    })
+    .transition().duration(200).delay(100)
+    .style("stroke", function(d){ return("lightblue")} )
+    .style("opacity", "1")
+    .style("stroke-width", "2")
+  
+  d3.select("#pcp").selectAll(".line")
+    .filter(function(){
+      return d3.select(this).attr("value") == "current";
+  }).raise();
+  
+  d3.select("#scatter").selectAll(".dot")
+    .transition()
+    .duration(200).delay(100)
+    .style("fill", "lightblue")
+    .attr("r", 5 )
+}
+
+// Function to update design sliders when clicked on a particular design
+const onClickDesign = function(event, d){
+  d3.select("#pcp").selectAll(".line")
+    .filter(function(){
+      return d3.select(this).attr("value") != "current";
+    })
+    .transition().duration(200)
+    .style("stroke", "lightgrey")
+    .style("opacity", "0.5")
+  
+  d3.select("#scatter").selectAll(".dot")
+    .transition()
+    .duration(200)
+    .style("fill", "lightgrey")
+    .attr("r", 3)
+
+  d3.select(this)
+    .transition().duration(200)
+    .style("stroke", "green")
+    .style("opacity", "1")
+    .style("stroke-width", "4")
+
+  let idVal = d3.select(this).attr("value");
+
+  svgScatter.selectAll(".dot").
+  filter(function() {
+      return d3.select(this).attr("value") == idVal
+  }).transition()
+    .duration(200)
+    .style("fill", "green")
+    .attr("r", 7)
+
+  let parameterValues = JSON.parse("[" + d3.select(this).attr("design") + "]");
+  
+  // console.log(parameterValues);
+  for (var i = 0; i < numParams; i++){
+    // console.log(parameterValues[i]);
+    parent.task.document.getElementById('param' + (i+1) + 'slider').value = parameterValues[i];
+    parent.task.document.getElementById('param' + (i+1) + 'output').value = parameterValues[i];
+  }
+
+  drawGuidingLine();
+}
+
+// Function to parse data point in right way to input into the PCP
+function pathPcp(d) {
+  // const line = d3.line()(dimensionsPcp.map(function(p) { return [xPcp(p), yPcp[p](d[p])]; }));
+  // return line;
+  var lineData = [d.x1, d.x2, d.x3, d.x4, d.x5]
+  var linePath = "M" + 0 + "," + (1- lineData[0]) * height;
+
+  for (var i = 1; i < lineData.length; i++){
+    linePath += "L" + (i) * 100 + "," + (1 - lineData[i])*height;
+  }
+  return linePath;
+}
+
 // Function to draw the PCP plots for the evaluated designs
 function drawPcp() {
   // append the svg object to the body of the page
@@ -177,121 +311,6 @@ function drawPcp() {
   xPcp = d3.scalePoint()
     .range([0, width])
     .domain(dimensionsPcp);
-
-  const highlightPcp = function(event, d){
-    d3.select("#pcp").selectAll(".line")
-      .transition().duration(200)
-      .style("stroke", "lightgrey")
-      .style("opacity", "0.5")
-    
-    d3.select("#scatter").selectAll(".dot")
-      .transition()
-      .duration(200)
-      .style("fill", "lightgrey")
-      .attr("r", 3)
-
-    d3.select(this)
-      .transition().duration(200)
-      .style("stroke", "green")
-      .style("opacity", "1")
-      .style("stroke-width", "4")
-    
-    let idVal = d3.select(this).attr("value");
-
-    svgScatter.selectAll(".dot").
-    filter(function() {
-        return d3.select(this).attr("value") == idVal
-    }).transition()
-      .duration(200)
-      .style("fill", "green")
-      .attr("r", 7)
-
-    tooltipPcp.html("Design parameters: " + String(d3.select(this).attr("design")))
-      .transition()
-      .duration(500)
-      .style("opacity", 1)
-      .style("left", (event.x) / 2 + "px")
-      .style("top", (event.y) / 2 + "px")
-      
-    let objectivesDesign = svgScatter.selectAll(".dot").
-    filter(function(){
-      return d3.select(this).attr("value") == idVal;
-    }).attr("objectives");
-
-    console.log(objectivesDesign);
-
-    tooltipScatter.html("Objectives: " + String(objectivesDesign))
-    .transition()
-    .duration(500)
-    .style("opacity", 1)
-    .style("left", (event.x) / 2 + "px")
-    .style("top", (event.y) / 2 + "px")
-
-  }
-
-  const doNotHighlightPcp = function(event, d){
-    d3.select("#pcp").selectAll(".line")
-      .transition().duration(200).delay(100)
-      .style("stroke", function(d){ return("lightblue")} )
-      .style("opacity", "1")
-      .style("stroke-width", "2")
-    
-    d3.select("#scatter").selectAll(".dot")
-      .transition()
-      .duration(200).delay(100)
-      .style("fill", "lightblue")
-      .attr("r", 5 )
-  }
-
-  const onClickDesign = function(event, d){
-    d3.select("#pcp").selectAll(".line")
-      .transition().duration(200)
-      .style("stroke", "lightgrey")
-      .style("opacity", "0.5")
-    
-    d3.select("#scatter").selectAll(".dot")
-      .transition()
-      .duration(200)
-      .style("fill", "lightgrey")
-      .attr("r", 3)
-
-    d3.select(this)
-      .transition().duration(200)
-      .style("stroke", "green")
-      .style("opacity", "1")
-      .style("stroke-width", "4")
-
-    let idVal = d3.select(this).attr("value");
-
-    svgScatter.selectAll(".dot").
-    filter(function() {
-        return d3.select(this).attr("value") == idVal
-    }).transition()
-      .duration(200)
-      .style("fill", "green")
-      .attr("r", 7)
-
-    let parameterValues = JSON.parse("[" + d3.select(this).attr("design") + "]");
-    
-    // console.log(parameterValues);
-    for (var i = 0; i < numParams; i++){
-      // console.log(parameterValues[i]);
-      parent.task.document.getElementById('param' + (i+1) + 'slider').value = parameterValues[i];
-      parent.task.document.getElementById('param' + (i+1) + 'output').value = parameterValues[i];
-    }
-  }
-
-  function pathPcp(d) {
-    // const line = d3.line()(dimensionsPcp.map(function(p) { return [xPcp(p), yPcp[p](d[p])]; }));
-    // return line;
-    var lineData = [d.x1, d.x2, d.x3, d.x4, d.x5]
-    var linePath = "M" + 0 + "," + (1- lineData[0]) * height;
-
-    for (var i = 1; i < lineData.length; i++){
-      linePath += "L" + (i) * 100 + "," + (1 - lineData[i])*height;
-    }
-    return linePath;
-  }
 
   svgPcp
     .selectAll("myPath")
@@ -321,6 +340,185 @@ function drawPcp() {
         .attr("y", -9)
         .text(function(d) { return d; })
         .style("fill", "black")
+  
+  svgPcp
+  .selectAll("myPath")
+  .data(designLineData).enter()
+  .append("path")
+  // .join("path")
+    .attr("class", function (d) { return "line"; } ) // 2 class for each line: 'line' and the group name
+    .attr("d", d => pathPcp(d))
+    .attr("value", function (d) {return d.id; })
+    .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+    .style("fill", "none" )
+    .style("stroke", function(d){ return( "red")} )
+    .style("opacity", 1.0)
+    .style("stroke-width", "2")
+}
+
+// Function to draw the design line
+function drawDesignLine() {
+  // console.log(designLineData);
+  svgPcp
+  .selectAll("myPath")
+  .data(designLineData).enter()
+  .append("path")
+  // .join("path")
+    .attr("class", function (d) { return "line"; } ) // 2 class for each line: 'line' and the group name
+    .attr("d", function(d) { return pathPcp(d);})
+    .attr("value", function (d) {return d.id; })
+    .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+    .style("fill", "none" )
+    .style("stroke", function(d){ return( "red")} )
+    .style("opacity", 1.0)
+    .style("stroke-width", "2")
+}
+
+// Function to draw the guiding line that follows the 
+const drawGuidingLine = function(event){
+  // console.log(this.name.replace("param", ""));
+  
+  var paramSliders = []
+  for (var i = 0; i < numParams; i++){
+    var valueSlider = parent.task.document.getElementById('param' + (i+1) + 'slider').value;
+    paramSliders.push(valueSlider);
+  }
+
+  for (var i = 0; i < numParams; i++){
+    designLineData[0][parameterNames[i]] = paramSliders[i];
+  }
+
+  d3.selectAll(".line").filter(function(){
+    return d3.select(this).attr("value") == "current";
+  }).remove();
+
+  drawDesignLine();
+}
+
+// Function to highlight scattered point when hovered over
+const highlightScatter = function(event, d){
+  d3.select("#scatter").selectAll(".dot")
+    .transition()
+    .duration(200)
+    .style("fill", "lightgrey")
+    .attr("r", 3)
+  
+  d3.select("#pcp").selectAll(".line")
+    .filter(function(){
+      return d3.select(this).attr("value") != "current";
+    })
+    .transition().duration(200)
+    .style("stroke", "lightgrey")
+    .style("opacity", "0.5")
+
+  d3.select(this)
+    .transition()
+    .duration(200)
+    .style("fill", "green")
+    .attr("r", 7)
+  
+  tooltipScatter.html("Objectives: " + d3.select(this).attr("objectives"))
+    .transition()
+    .duration(500)
+    .style("opacity", 1)
+    .style("left", (event.x) / 2 + "px")
+    .style("top", (event.y) / 2 + "px")
+
+  let idVal = d3.select(this).attr("value");
+  
+  var correspondingLine = svgPcp.selectAll(".line").filter(function() {
+      return d3.select(this).attr("value") == idVal
+  })
+  
+  correspondingLine
+    .transition().duration(200)
+    .style("stroke", "green")
+    .style("opacity", "1")
+    .style("stroke-width", "4");
+  
+  correspondingLine.raise();
+  
+  let parametersDesign = svgPcp.selectAll(".line").
+  filter(function(){
+    return d3.select(this).attr("value") == idVal;
+  }).attr("design");
+
+  tooltipPcp.html("Design Parameters: " + parametersDesign)
+    .transition()
+    .duration(500)
+    .style("opacity", 1)
+    .style("left", (event.x) / 2 + "px")
+    .style("top", (event.y) / 2 + "px")
+}
+
+const onClickScatter = function(event, d){
+  d3.select("#pcp").selectAll(".line")
+    .filter(function(){
+      return d3.select(this).attr("value") != "current";
+    })
+    .transition().duration(200)
+    .style("stroke", "lightgrey")
+    .style("opacity", "0.5")
+  
+  d3.select("#scatter").selectAll(".dot")
+    .transition()
+    .duration(200)
+    .style("fill", "lightgrey")
+    .attr("r", 3)
+
+  d3.select(this)
+    .transition()
+    .duration(200)
+    .style("fill", "green")
+    .attr("r", 7)
+
+  let idVal = d3.select(this).attr("value");
+
+  var lineDesign = svgPcp.selectAll(".line").filter(function() {
+    return d3.select(this).attr("value") == idVal
+  });
+
+  console.log(lineDesign.attr("value"));
+
+  lineDesign
+    .transition().duration(200)
+    .style("stroke", "green")
+    .style("opacity", "1")
+    .style("stroke-width", "4")
+
+  let parameterValues = JSON.parse("[" + lineDesign.attr("design") + "]");
+  
+  // console.log(parameterValues);
+  for (var i = 0; i < numParams; i++){
+    // console.log(parameterValues[i]);
+    parent.task.document.getElementById('param' + (i+1) + 'slider').value = parameterValues[i];
+    parent.task.document.getElementById('param' + (i+1) + 'output').value = parameterValues[i];
+  }
+
+  drawGuidingLine();
+}
+
+// Function to not highlight scattered points when not hovered over
+const doNotHighlightScatter = function(event, d){
+  d3.select("#scatter").selectAll(".dot")
+    .transition()
+    .duration(200).delay(500)
+    .style("fill", "lightblue")
+    .attr("r", 5 )
+  
+  d3.select("#pcp").selectAll(".line")
+    .filter(function(){
+      return d3.select(this).attr("value") != "current";
+    })
+    .transition().duration(200).delay(500)
+    .style("stroke", function(d){ return("lightblue")} )
+    .style("opacity", "1")
+    .style("stroke-width", "2")
+  
+  d3.select("#pcp").selectAll(".line")
+    .filter(function(){
+      return d3.select(this).attr("value") == "current";
+  }).raise();
 }
 
 // Function to draw the scattered plots for the objective values of the evaluated designs
@@ -338,68 +536,6 @@ function drawScatter() {
   svgScatter.append("g")
       .call(d3.axisLeft(y));
 
-  const highlightScatter = function(event, d){
-    d3.select("#scatter").selectAll(".dot")
-      .transition()
-      .duration(200)
-      .style("fill", "lightgrey")
-      .attr("r", 3)
-    
-    d3.select("#pcp").selectAll(".line")
-      .transition().duration(200)
-      .style("stroke", "lightgrey")
-      .style("opacity", "0.5")
-
-    d3.select(this)
-      .transition()
-      .duration(200)
-      .style("fill", "green")
-      .attr("r", 7)
-    
-    tooltipScatter.html("Objectives: " + d3.select(this).attr("objectives"))
-      .transition()
-      .duration(500)
-      .style("opacity", 1)
-      .style("left", (event.x) / 2 + "px")
-      .style("top", (event.y) / 2 + "px")
-
-    let idVal = d3.select(this).attr("value");
-
-    svgPcp.selectAll(".line").
-    filter(function() {
-        return d3.select(this).attr("value") == idVal
-    }).transition().duration(200)
-      .style("stroke", "green")
-      .style("opacity", "1")
-      .style("stroke-width", "4");
-
-    let parametersDesign = svgPcp.selectAll(".line").
-    filter(function(){
-      return d3.select(this).attr("value") == idVal;
-    }).attr("design");
-
-    tooltipPcp.html("Design Parameters: " + parametersDesign)
-      .transition()
-      .duration(500)
-      .style("opacity", 1)
-      .style("left", (event.x) / 2 + "px")
-      .style("top", (event.y) / 2 + "px")
-  }
-      
-  const doNotHighlightScatter = function(event, d){
-    d3.select("#scatter").selectAll(".dot")
-      .transition()
-      .duration(200).delay(500)
-      .style("fill", "lightblue")
-      .attr("r", 5 )
-    
-    d3.select("#pcp").selectAll(".line")
-      .transition().duration(200).delay(500)
-      .style("stroke", function(d){ return("lightblue")} )
-      .style("opacity", "1")
-      .style("stroke-width", "2")
-  }
-
   svgScatter.append('g')
   .selectAll("dot")
   .data(evaluatedDesigns).enter()
@@ -413,6 +549,7 @@ function drawScatter() {
       .style("fill", "lightblue")
   .on("mouseover", highlightScatter)
   .on("mouseleave", doNotHighlightScatter)
+  .on("click", onClickScatter)
 
   svgScatter.append("text")
     .attr("text-anchor", "end")
@@ -1119,6 +1256,7 @@ function addNewForbiddenRegion() {
   document.getElementById('button-delete-forbidden').disabled = false;
 }
 
+// Update to delete a selected forbidden region
 function deleteForbiddenRegion() {
   console.log("Hello");
 
@@ -1162,6 +1300,7 @@ function deleteForbiddenRegion() {
   document.getElementById('button-delete-forbidden').disabled = true;
 }
 
+// Function to add a custom forbidden range depending on slider value
 const addForbiddenRange = function(event) {
   var dimensionSelected = d3.select(this).attr("dim");
   var defaultWidth = 0.05;
@@ -1227,5 +1366,128 @@ const addForbiddenRange = function(event) {
   document.getElementById('confidence-slider-value').value = selectedNewRange.attr("confidence");
 
   document.getElementById('button-delete-forbidden').disabled = false;
+}
+
+const TestType = {            
+  FORMAL: 0,
+  PILOT: 1,
+};
+
+function runPilotTest() {
+  console.log("runPilotTest");
+
+  parent.task.document.getElementById("test-result").textContent = ""
+  var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
+  parent.task.document.getElementById("test-result").innerHTML += progressBarHtml;
+  $('.button').prop('disabled', true);
+  parent.task.document.getElementById("test-button").disabled = true;
+  parent.task.document.getElementById("evaluation-button").disabled = true;
+
+  var paramVals = [];
+  var inputSliders = parent.task.document.querySelectorAll(".slider");
+  
+  console.log(inputSliders);
+
+  for (var i = 0; i < inputSliders.length; i++){
+    var name = inputSliders[i].id;
+    var val = inputSliders[i].value;
+    console.log(name + ": " + val);
+    paramVals.push(val);
+  }
+
+  getTestResult(paramVals, TestType.PILOT);
+
+  var waitTime = 1; //s, this should be the same as in the python script
+  var progressStep = 1 / waitTime * 10;
+  var progressVal = 0;
+  const progressInterval = setInterval(function () {
+      parent.task.document.getElementById("test-progress").value = progressVal;
+      progressVal += progressStep; 
+      if (progressVal > 100) {
+          clearInterval(progressInterval);
+      }
+  }, 100);
+}
+
+function runFormalTest() {
+  console.log("runFormalTest");
+
+  parent.task.document.getElementById("test-result").textContent = ""
+  var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
+  parent.task.document.getElementById("test-result").innerHTML += progressBarHtml;
+  $('.button').prop('disabled', true);
+  parent.task.document.getElementById("test-button").disabled = true;
+  parent.task.document.getElementById("evaluation-button").disabled = true;
+
+  var paramVals = [];
+  var inputSliders = parent.task.document.querySelectorAll(".slider");
+  
+  console.log(inputSliders);
+
+  for (var i = 0; i < inputSliders.length; i++){
+    var name = inputSliders[i].id;
+    var val = inputSliders[i].value;
+    console.log(name + ": " + val);
+    paramVals.push(val);
+  }
+
+  getTestResult(paramVals, TestType.FORMAL);
+
+  var waitTime = 5; //s, this should be the same as in the python script
+  var progressStep = 1 / waitTime * 10;
+  var progressVal = 0;
+  const progressInterval = setInterval(function () {
+      parent.task.document.getElementById("test-progress").value = progressVal;
+      progressVal += progressStep; 
+      if (progressVal > 100) {
+          clearInterval(progressInterval);
+      }
+  }, 100);
+
+}
+
+function getTestResult(paramVals, testType) {
+  var paramValsJson = JSON.stringify(paramVals);
+  var objVals;
+
+  $.ajax({
+      url: "/cgi/dummy_task_model.py",
+      type: "post",
+      datatype:"json",                    
+      data: { 'param_vals'        :paramValsJson,
+              'test_type'         :testType },                    
+      success: function(result) {
+        submitReturned = true;
+        // console.log(result.message);
+        objVals = JSON.parse(result.message).obj_vals
+
+        // TODO handle returned objVals
+        parent.task.document.getElementById("test-result").innerHTML += "<br>" + (objVals[0] + " , " + objVals[1]);
+        parent.task.document.querySelectorAll(".button").disabled = false;
+
+        $('.button').prop('disabled', false);
+        parent.task.document.getElementById("test-button").disabled = false;
+        parent.task.document.getElementById("evaluation-button").disabled = false;
+        
+        if (testType == TestType.FORMAL){
+          var maxID = evaluatedDesigns.length;
+          var newDesignData = {id: maxID+1,
+                              x1: paramVals[0],
+                              x2: paramVals[1],
+                              x3: paramVals[2],
+                              x4: paramVals[3],
+                              x5: paramVals[4],
+                              y1: objVals[0],
+                              y2: objVals[1]}
+          evaluatedDesigns.push(newDesignData);
+        }
+
+        drawPcp();
+        drawScatter();
+      },
+      error: function(result){
+          console.log("Error in getTestResult: " + result.message);
+      }
+  });
 }
 
