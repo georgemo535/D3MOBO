@@ -9,23 +9,18 @@
     <script src="scripts/sliders.js"></script>
 </head>
 <body onload="renderTaskInterface();">
-    <div class="icons">
-        <img src="images/twitter.jpg" style="width:400px;height:300px;"></img>
+    <div style="text-align: center;">
+        <iframe src="design.html" class="design-window" name="design"></iframe>
     </div>
-    <!-- <div class="wrapper"> -->
-
-        <h>Design Parameters</h>
-        <div id="param-sliders" class="sliders">
-            <div class="slidecontainer">
-            </div>
+    <div style="text-align: center;">
+        <h2>Design Parameters</h2>
+        <div id="param-sliders" class="sliders">            
         </div>
-        <div id="evaluationbutton">
+        <div id="evaluation">
             <button class="button" id="evaluation-button">Perform Formal Evaluation</button>
-        </div>
-        <div id="testbutton">
             <button class="button" id="test-button">Perform Pilot Testing</button>
-        </div>        
+        </div>
         <div id="test-result"></div>
-    <!-- </div> -->
+    </div>
 </body>
 </html>

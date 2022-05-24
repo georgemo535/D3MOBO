@@ -87,6 +87,7 @@ const tooltipPcp = d3.select("#pcp")
 .style("border-width", "1px")
 .style("border-radius", "5px")
 .style("padding", "10px")
+.html("Design Parameters:")
 
 const svgScatter = d3.select("#scatter")
 .append("svg")
@@ -105,6 +106,7 @@ const tooltipScatter = d3.select("#scatter")
 .style("border-width", "1px")
 .style("border-radius", "5px")
 .style("padding", "10px")
+.html("Objectives:")
 
 const svgRegions = d3.select("#regions")
   .append("svg")
@@ -194,7 +196,7 @@ const highlightPcp = function(event, d){
     .style("fill", "green")
     .attr("r", 7)
 
-  tooltipPcp.html("Design parameters: " + String(d3.select(this).attr("design")))
+  tooltipPcp.html("Design Parameters: " + String(d3.select(this).attr("design")))
     .transition()
     .duration(500)
     .style("opacity", 1)
@@ -810,18 +812,35 @@ function drawRegionPlot() {
   for (var i = 0; i < numParams; i++) {
     var wButton = 20;
     var hButton = 20;
-    var xTopLeft = i*100 - wButton/2;
-    var yTopLeft = height + 10;
-    svgRegions
+    var xCenter = i*100;
+    var yCenter = height + 20;
+
+    var addForbiddenRangeButton = svgRegions.append("g")
+      .attr("transform", "translate(" + xCenter + "," + yCenter + ")")
+      //.attr("x", xTopLeft)
+      //.attr("y", yTopLeft);
+
+    addForbiddenRangeButton
       .append('rect')
-           .attr("x", xTopLeft)
-           .attr("y", yTopLeft)
+           .attr("x", -wButton/2)
+           .attr("y", -hButton/2)
+           .attr("rx", 5)
+           .attr("ry", 5)
            .attr("width", wButton)
            .attr("height", hButton)
            .attr("id", "button-range-dim-" + (i+1))
            .attr("dim", i+1)
-           .style("fill", 'red')
+           .style("stroke", '#5c5c5c')
+           .attr('stroke-width', '2')
+           .style("fill", 'white')
            .on("click", addForbiddenRange)
+
+    addForbiddenRangeButton.append("text")
+                           .style("text-anchor", "middle")
+                           .style("alignment-baseline", "central")
+                           .style("pointer-events", "none")
+                           .attr("y", -1)
+                           .text("+")
   }
 
   // Draw forbidden ranges draggable circles
@@ -940,8 +959,8 @@ function renderRegionList() {
     var inputTxt = "<input type='radio' id='region-tick-" + regionID +  "' name='forbidden-tick' value=" + regionID + ">"
     var labelTxt = "<label for='forbidden" + regionID + "'>" + (i+1) + "</label><br>"
 
-    $("#forbidden-list").append(inputTxt)
-    $("#forbidden-list").append(labelTxt)
+    $("#forbidden-region-list").append(inputTxt)
+    $("#forbidden-region-list").append(labelTxt)
   }
 
   var numberForbiddenRanges = forbidRangeData.length;
@@ -952,8 +971,8 @@ function renderRegionList() {
     var inputTxt = "<input type='radio' id='range-tick-" + rangeID +  "' name='forbidden-tick' value=" + rangeID + ">"
     var labelTxt = "<label for='forbidden" + rangeID + "'>" + (i+1) + "</label><br>"
 
-    $("#forbidden-list").append(inputTxt)
-    $("#forbidden-list").append(labelTxt)
+    $("#forbidden-range-list").append(inputTxt)
+    $("#forbidden-range-list").append(labelTxt)
   }
 
   let radios = document.querySelectorAll('input[type=radio]');

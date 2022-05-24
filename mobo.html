@@ -15,33 +15,47 @@
         <tr>
             <td><div id="regions"></div></td>
             <td>
-                <table>
-                <tr><td>
-                <form action="#" id="forbidden-list">
+                <table style="width: 400px;">
+                    <tr><td><h3>Forbidden Region</h3></td><td><h3>Forbidden Range</h3></td></tr>
+                <tr><form action="#" id="forbidden-list">
+                    <td>
+                    <div id="forbidden-region-list">
+
+                    </div>
                      <!-- <input type="radio" id="forbidden1" name="forbidden1" value="1">
                      <label for="forbidden1">1</label><br>
                      <input type="radio" id="forbidden2" name="forbidden1" value="2">
                      <label for="forbidden2">2</label><br> -->
+                
+                </td><td>
+                    <div id="forbidden-range-list">
+                        
+                    </div>
+                </td>
                 </form>
-                <button class="button" id="clear-selection-button">Clear</button>
+                </tr><tr>
+                    <td colspan="2">
+
                 <div id="confidence-slider-wrapper">
-                    <p>Confidence Value: </p>
+                    <p><h3>Confidence Value:</h3></p>
                     <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="confidence-slider" oninput='this.nextElementSibling.value = this.value'>
                     <output id="confidence-slider-value">0.5</output>
                 </div>
-                <br><br><br><br><br>
-                <!-- <button class="button">Input New Values</button> -->
-                <button class="button" id="button-add-forbidden">Add New Forbidden Region</button>
-                <button class="button" id="button-delete-forbidden">Delete</button>
                 </td>
                 </tr>
                 </table>
+                <br>
+                <button class="button" id="clear-selection-button">Clear</button>
+                <button class="button" id="button-delete-forbidden">Delete</button>
+                <button class="button" id="button-add-forbidden">Add New Forbidden Region</button>
             </td>
         </tr>
     </table>
 
-    <div id="mobobutton">
-        <button class="button">Get New Design from MOBO</button>
+    <hr>
+
+    <div id="mobobutton" style="text-align: center;">
+        <button class="button">New Design from MOBO</button>
     </div>
 
     <script src="https://d3js.org/d3.v6.js"></script>

@@ -27,7 +27,7 @@ function constructParameterSlider() {
     console.log("Loading sliders")
 
     for (var i = 0; i < numParams; i++){
-        var inputTxt = "<input type='range' min=" + xBounds[i][0] + " max=" + xBounds[i][1] + " value='0.5' step='0.01' class='slider'"
+        var inputTxt = "<input type='range' min=" + xBounds[i][0] + " max=" + xBounds[i][1] + " value='0.50' step='0.01' class='slider'"
         + " id=" + "'param" + (i+1) + "slider'" + " name=" + "'param" + (i+1) + "'" + " oninput='this.nextElementSibling.value = this.value'>";
         var outputTxt = "<output id='param"+ (i+1) + "output'>0.5</output>"
         var breakTxt = "<br><br>"

@@ -1,4 +1,4 @@
-#! /home/george/anaconda3/bin/python
+#! C:/Python310/python
 
 # This function manages the interface with the task or task model
 
