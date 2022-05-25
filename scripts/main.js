@@ -39,6 +39,7 @@ async function renderMoboInterface() {
     evaluatedDesigns = await parseDesigns("../data/data.csv")
     forbidRangeData = await parseRanges("../data/ranges.csv")
 
+    constructParameterSlider();
     drawPcp();
     drawScatter();
     renderRegionPlot = drawRegionPlot();
@@ -55,11 +56,43 @@ async function renderMoboInterface() {
     parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
     parent.task.document.getElementById('test-button').addEventListener("click", runPilotTest);
 
-    for (var i = 0; i < numParams; i++){
-      parent.task.document.getElementById('param' + (i+1) + 'slider').addEventListener("input", drawGuidingLine);
-    }
-
+    document.getElementById('button-mobo').addEventListener("click", runMOBO);
   });
+}
+
+function renderTaskInterface() {
+  readTextFile("../configs/config.json", function(text){
+      config = JSON.parse(text);
+      numParams = config["dimx"];
+      xBounds = config["xbounds"];
+
+      constructParameterSlider();
+  });
+}
+
+function constructParameterSlider() {
+  console.log("Loading sliders")
+
+  for (var i = 0; i < numParams; i++){
+      var inputTxt = "<input type='range' min=" + parameterBounds[i][0] + " max=" + parameterBounds[i][1] + " value='0.50' step='0.01' class='slider'"
+      + " id=" + "'param" + (i+1) + "slider'" + " name=" + "'param" + (i+1) + "'" + " oninput='this.nextElementSibling.value = this.value'>";
+      var outputTxt = "<output id='param"+ (i+1) + "output'>0.5</output>"
+      var breakTxt = "<br><br>"
+
+      // console.log(inputTxt);
+      var paramSlidersDiv = parent.task.document.getElementById("param-sliders");
+      paramSlidersDiv.innerHTML += inputTxt
+      paramSlidersDiv.innerHTML += outputTxt
+      paramSlidersDiv.innerHTML += breakTxt
+
+      // parent.task.document.getElementById("param-sliders").appendChild(inputTxt)
+      // parent.task.document.getElementById("param-sliders").appendChild(outputTxt)
+      // parent.task.document.getElementById("param-sliders").appendChild(breakTxt)
+  }
+
+  for (var i = 0; i < numParams; i++){
+    parent.task.document.getElementById('param' + (i+1) + 'slider').addEventListener("input", drawGuidingLine);
+  }
 }
 
 const svgWidth = 500;
@@ -376,7 +409,7 @@ function drawDesignLine() {
     .style("stroke-width", "2")
 }
 
-// Function to draw the guiding line that follows the 
+// Function to draw the guiding line that follows the sliders
 const drawGuidingLine = function(event){
   // console.log(this.name.replace("param", ""));
   
@@ -395,6 +428,10 @@ const drawGuidingLine = function(event){
   }).remove();
 
   drawDesignLine();
+
+  for (var i = 0; i < numParams; i++){
+    parent.task.document.getElementById('param' + (i+1) + 'output').innerHTML = parent.task.document.getElementById('param' + (i+1) + 'slider').value;
+  }
 }
 
 // Function to highlight scattered point when hovered over
@@ -946,9 +983,14 @@ function drawRegionPlot() {
 function renderRegionList() {
   // console.log("Loading forbidden regions")
   // var regionData = await parseRegions("../data/regions.csv");
-  var parentList = document.getElementById("forbidden-list");
+  var parentList = document.getElementById("forbidden-region-list");
   while (parentList.firstChild) {
     parentList.firstChild.remove();
+  }
+
+  var rangeList = document.getElementById("forbidden-range-list");
+  while (rangeList.firstChild) {
+    rangeList.firstChild.remove();
   }
 
   var numberForbiddenRegions = regionData.length;
@@ -1241,9 +1283,9 @@ function addNewForbiddenRegion() {
     .style("opacity", d => d.confidence * 0.5 + 0.2)
   
   var selectedNewRegion = d3.select("#regions").selectAll(".area")
-  .filter(function() {
-    return d3.select(this).attr("value") == String(newID);
-  })
+    .filter(function() {
+      return d3.select(this).attr("value") == String(newID);
+    })
 
   selectedNewRegion
     .style("fill", "blue")
@@ -1387,11 +1429,13 @@ const addForbiddenRange = function(event) {
   document.getElementById('button-delete-forbidden').disabled = false;
 }
 
+// Test type - 0 for formal evaluation, 1 for pilot
 const TestType = {            
   FORMAL: 0,
   PILOT: 1,
 };
 
+// Run pilot test function
 function runPilotTest() {
   console.log("runPilotTest");
 
@@ -1428,6 +1472,7 @@ function runPilotTest() {
   }, 100);
 }
 
+// Run formal evaluation function
 function runFormalTest() {
   console.log("runFormalTest");
 
@@ -1465,12 +1510,13 @@ function runFormalTest() {
 
 }
 
+// Get test result from formal evaluation or pilot test
 function getTestResult(paramVals, testType) {
   var paramValsJson = JSON.stringify(paramVals);
   var objVals;
 
   $.ajax({
-      url: "/cgi/dummy_task_model.py",
+      url: "/cgi/query_function.py",
       type: "post",
       datatype:"json",                    
       data: { 'param_vals'        :paramValsJson,
@@ -1478,10 +1524,10 @@ function getTestResult(paramVals, testType) {
       success: function(result) {
         submitReturned = true;
         // console.log(result.message);
-        objVals = JSON.parse(result.message).obj_vals
+        objVals = JSON.parse(result.message).obj_vals;
 
         // TODO handle returned objVals
-        parent.task.document.getElementById("test-result").innerHTML += "<br>" + (objVals[0] + " , " + objVals[1]);
+        parent.task.document.getElementById("test-result").innerHTML += "<br>" + (parseFloat(objVals[0]).toFixed(2) + " , " + parseFloat(objVals[1]).toFixed(2));
         parent.task.document.querySelectorAll(".button").disabled = false;
 
         $('.button').prop('disabled', false);
@@ -1491,18 +1537,113 @@ function getTestResult(paramVals, testType) {
         if (testType == TestType.FORMAL){
           var maxID = evaluatedDesigns.length;
           var newDesignData = {id: maxID+1,
-                              x1: paramVals[0],
-                              x2: paramVals[1],
-                              x3: paramVals[2],
-                              x4: paramVals[3],
-                              x5: paramVals[4],
-                              y1: objVals[0],
-                              y2: objVals[1]}
+                              x1: parseFloat(paramVals[0]).toFixed(2),
+                              x2: parseFloat(paramVals[1]).toFixed(2),
+                              x3: parseFloat(paramVals[2]).toFixed(2),
+                              x4: parseFloat(paramVals[3]).toFixed(2),
+                              x5: parseFloat(paramVals[4]).toFixed(2),
+                              y1: parseFloat(objVals[0]).toFixed(2),
+                              y2: parseFloat(objVals[1]).toFixed(2)}
           evaluatedDesigns.push(newDesignData);
         }
 
         drawPcp();
         drawScatter();
+      },
+      error: function(result){
+          console.log("Error in getTestResult: " + result.message);
+      }
+  });
+}
+
+// Function to run MOBO when clicked button
+function runMOBO(){
+  console.log("runMOBO");
+  document.getElementById("mobo-loading").textContent = ""
+  var progressBarHtml = "<progress id='mobo-progress' value='0' max='100'></progress>";
+  document.getElementById("mobo-loading").innerHTML += progressBarHtml;
+  $('.button').prop('disabled', true);
+  parent.task.document.getElementById("test-button").disabled = true;
+  parent.task.document.getElementById("evaluation-button").disabled = true;
+
+  getMOBOResult(evaluatedDesigns, regionData, forbidRangeData);
+
+  var waitTime = 5; //s, this should be the same as in the python script
+  var progressStep = 1 / waitTime * 10;
+  var progressVal = 0;
+  const progressInterval = setInterval(function () {
+      document.getElementById("mobo-progress").value = progressVal;
+      progressVal += progressStep; 
+      if (progressVal > 100) {
+          clearInterval(progressInterval);
+      }
+  }, 100);
+}
+
+// Function to get new design from MOBO
+function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
+  // Put everything in appropriate array format
+  var processedX = [];
+  var processedY = [];
+  console.log(evaluatedDesigns);
+  for (var i = 0; i < evaluatedDesigns.length; i++){
+    processedX.push([evaluatedDesigns[i].x1, 
+                    evaluatedDesigns[i].x2, 
+                    evaluatedDesigns[i].x3, 
+                    evaluatedDesigns[i].x4, 
+                    evaluatedDesigns[i].x5]);
+    processedY.push([evaluatedDesigns[i].y1, 
+                    evaluatedDesigns[i].y2]);
+  }
+
+  var processedRegions = [];
+  for (var i = 0; i < regionData.length; i++){
+    var totalForbiddenRegion = regionData[i].lowerBound.concat(regionData[i].upperBound);
+    totalForbiddenRegion.push(regionData[i].confidence);
+    processedRegions.push(totalForbiddenRegion);
+  }
+
+  for (var i = 0; i < forbidRangeData.length; i++){
+    var dim = forbidRangeData[i].dim;
+    var lower = forbidRangeData[i].low;
+    var upper = forbidRangeData[i].up;
+    var confidence = forbidRangeData[i].confidence;
+
+    var lowerBounds = new Array(numParams).fill(0);
+    var upperBounds = new Array(numParams).fill(1);
+    lowerBounds[dim-1] = lower;
+    upperBounds[dim-1] = upper;
+
+    var totalForbiddenRange = lowerBounds.concat(upperBounds);
+    totalForbiddenRange.push(confidence);
+    processedRegions.push(totalForbiddenRange);
+  }
+
+  var designParamsJson = JSON.stringify(processedX);
+  var objectivesJson = JSON.stringify(processedY);
+  var forbidRegionsJson = JSON.stringify(processedRegions);
+
+  $.ajax({
+      url: "/cgi/query_mobo.py",
+      type: "post",
+      datatype: "json",
+      data: {   'design_params'   : designParamsJson,
+                'objectives'   : objectivesJson,
+                'forbidden_regions'    : forbidRegionsJson},
+      success: function(result) {
+        submitReturned = true;
+
+        var proposedLocation = JSON.parse(result.message).proposed_location;
+        // console.log(proposedLocation);
+        for (var i = 0; i < numParams; i++){
+          // console.log(parameterValues[i]);
+          parent.task.document.getElementById('param' + (i+1) + 'slider').value = proposedLocation[i];
+          parent.task.document.getElementById('param' + (i+1) + 'output').value = proposedLocation[i];
+        }
+
+        $('.button').prop('disabled', false);
+        parent.task.document.getElementById("test-button").disabled = false;
+        parent.task.document.getElementById("evaluation-button").disabled = false;
       },
       error: function(result){
           console.log("Error in getTestResult: " + result.message);

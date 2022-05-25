@@ -1,4 +1,4 @@
-#! C:/Python310/python
+#! /home/george/anaconda3/bin/python
 
 # This function manages the interface with the task or task model
 
@@ -9,6 +9,7 @@ import numpy as np
 import sqlite3
 import time
 import random
+from synthetic_function import *
 
 # Initialize the basic reply message
 message = "Necessary objects imported."
@@ -21,8 +22,15 @@ formData = cgi.FieldStorage()
 testWaitTime = 5 #s
 pilotWaitTime = 1 #s
 
+# Function configs
+weights = np.array([[0.5, 0.6, 0.4, 0.7, 0.1], 
+                    [1.0, 0.4, 0.8, 0.9, 1.2]])
+centers = np.array([[-0.2, 0.6, 0.7, 0.3, 0.7],
+                    [0.2, 0.4, 0.2, 1.2, 0.9]])
+biases = np.array([0.8, 0.7])
+
 # Define function for checking that required parameters have been submitted
-def checkFormData(data,expectedArgs):
+def checkFormData(data, expectedArgs):
     argsDefined = True
     for i in range(0,len(expectedArgs)):
         if expectedArgs[i] not in data:
@@ -40,12 +48,14 @@ def arrayToCsv(values):
         csv_string += str(values[i])
     return csv_string
 
-def testPerformance(paramValues):
-    objValues = [];
-    # TODO some model query
-    objValues.append(random.uniform(0, 1))
-    objValues.append(random.uniform(0, 1))
-    return objValues
+def testPerformance(paramValues, testType):
+    # Testing mode
+    if testType == 1:
+        values = pilot_test_function(paramValues, weights, centers, biases)
+    # Evaluation Mode
+    elif testType == 0:
+        values = formal_evaluation_function(paramValues, weights, centers, biases)
+    return values.tolist()[0]
 
 # Check that form values have been defined
 expectedArgs = ['param_vals', 'test_type']
@@ -59,7 +69,7 @@ else:
     # Parse arguments
     paramValsStr = formData['param_vals'].value
     paramValsStrArray = json.loads(paramValsStr)    
-    paramVals = [float(i) for i in paramValsStrArray]
+    paramVals = np.array([[float(i) for i in paramValsStrArray]])
     testType = int(formData['test_type'].value)
 
     # Enforce dummy delay
@@ -69,7 +79,7 @@ else:
         time.sleep(pilotWaitTime)
 
     # Get obj values for given param values
-    objVals = testPerformance(paramVals)
+    objVals = testPerformance(paramVals, testType)
     
     result = { "obj_vals": objVals }
     message = json.dumps(result)
