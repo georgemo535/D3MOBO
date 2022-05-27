@@ -16,7 +16,7 @@
             <td><div id="regions"></div></td>
             <td>
                 <table style="width: 400px;">
-                    <tr><td><h3>Forbidden Region</h3></td><td><h3>Forbidden Range</h3></td></tr>
+                    <tr><td><h3 id="forbidden-region-heading">Forbidden Region</h3></td><td><h3 id="forbidden-range-heading">Forbidden Range</h3></td></tr>
                 <tr><form action="#" id="forbidden-list">
                     <td>
                     <div id="forbidden-region-list">
@@ -35,13 +35,12 @@
                 </form>
                 </tr><tr>
                     <td colspan="2">
-
-                <div id="confidence-slider-wrapper">
-                    <p><h3>Confidence Value:</h3></p>
-                    <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="confidence-slider" oninput='this.nextElementSibling.value = this.value'>
-                    <output id="confidence-slider-value">0.5</output>
-                </div>
-                </td>
+                        <div id="confidence-slider-wrapper">
+                            <p><h3>Confidence Value:</h3></p>
+                            <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="confidence-slider" oninput='this.nextElementSibling.value = this.value'>
+                            <output id="confidence-slider-value">0.5</output>
+                        </div>
+                    </td>
                 </tr>
                 </table>
                 <br>
@@ -59,6 +58,20 @@
         <div id="mobo-loading" style="text-align: center;">
         </div>
     </div>
+
+    <table style="width: 800px;">
+        <tr><td><h3 id="coverage-percent-heading">Design Space Coverage:</h3></td><td><h3 id="use-of-mobo-percent-heading">Use of MOBO: </h3></td></tr>
+        <tr><td>
+            <div id="progress-coverage">
+
+            </div>
+        </td><td>
+            <div id="use-of-mobo">
+                
+            </div>
+        </td>
+        </tr>
+    </table>
 
     <script src="https://d3js.org/d3.v6.js"></script>
     <script src="scripts/main.js"></script>

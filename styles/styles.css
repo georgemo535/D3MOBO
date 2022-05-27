@@ -146,3 +146,34 @@ cursor: pointer;
 .button:disabled{
     background: rgb(172, 172, 172);
 }
+
+.prog-wrap * {
+    font-family: arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.prog-wrap {
+position: relative;
+border: 1px solid #acb2d8;
+width: 300px;
+}
+
+.prog-wrap, .prog-bar, .prog-percent { height: 30px; }
+  
+.prog-bar, .prog-percent {
+    position: absolute;
+    top: 0; left: 0;
+}
+  
+.prog-percent {
+    display: flex;
+    align-items: center; justify-content: center;
+    width: 100%;
+    z-index: 2;
+}
+  
+.prog-bar {
+    width: 0;
+    background: #ced6ff;
+    transition: width 0.5s;
+}

@@ -1,3 +1,104 @@
+var numParams = 5;
+var numObjs = 2;
+var parameterNames;
+var objectiveNames;
+var parameterBounds;
+var objectiveBounds;
+var numSubdivisions = 2;
+
+var renderRegionPlot;
+var regionData;
+var evaluatedDesigns;
+var forbidRangeData;
+
+// Global Condition Type
+var participantID;
+var conditionID;
+var applicationID;
+
+var designLineData;
+
+var moboUsed = false;
+var numberMOBOUsed = 0;
+
+const ConditionType = {
+  HYBRID: 0,
+  DESIGNER: 1,
+  MOBO: 2
+}
+
+const ApplicationType = {
+  0: "Twitter",
+  1: "Amazon",
+  2: "Google"
+}
+
+const ApplicationParams = {
+  0: {parameters: ["Ads", "Notification", "Personalization", "Moderation", "Refreshing"],
+            xbounds: [[0, 1], [0, 2], [0, 1], [0, 1], [0, 20]],
+            objectives: ["Revenue", "User Rating"],
+            ybounds: [[0, 20], [0, 5]]},
+  1: {parameters: ["x1", "x2", "x3", "x4", "x5"],
+            xbounds: [[0, 1], [0, 1], [0, 1], [0, 1], [0, 1]],
+            objectives: ["obj1", "obj2"],
+            ybounds: [[-1, 1], [-1, 1]]},
+  2: {parameters: ["x1", "x2", "x3", "x4", "x5"],
+            xbounds: [[0, 1], [0, 1], [0, 1], [0, 1], [0, 1]],
+            objectives: ["obj1", "obj2"],
+            ybounds: [[-1, 1], [-1, 1]]}
+}
+
+async function renderMoboInterface() {
+  participantID = localStorage.getItem("id");
+  conditionID = localStorage.getItem("exp-condition");
+  applicationID = localStorage.getItem("app");
+
+  // numParams = config["dimx"];
+  // numObjs = config["dimobj"];
+  // console.log(ApplicationParams[applicationID].parameters)
+  parameterNames = ApplicationParams[applicationID].parameters;
+  objectiveNames = ApplicationParams[applicationID].objectives;
+  parameterBounds = ApplicationParams[applicationID].xbounds;
+  objectiveBounds = ApplicationParams[applicationID].ybounds;
+
+  var midPoints = [];
+  for (var i = 0; i < numParams; i++){
+    midPoints.push((parameterBounds[i][0] + parameterBounds[i][1]) / 2);
+  }
+  var midPointsScaled = normalizeParameters(midPoints, parameterBounds);
+  designLineData = [{id: "current", x1: midPointsScaled[0], x2: midPointsScaled[1], x3: midPointsScaled[2], x4: midPointsScaled[3], x5: midPointsScaled[4]}];
+
+  regionData = await parseRegions("../data/regions.csv");
+  evaluatedDesigns = await parseDesigns("../data/data.csv");
+  forbidRangeData = await parseRanges("../data/ranges.csv");
+
+  constructParameterSlider();
+  drawPcp();
+  drawScatter();
+
+  renderRegionPlot = drawRegionPlot();
+  renderRegionList();
+
+  document.getElementById('confidence-slider').value = 0.5;
+  document.getElementById('confidence-slider').disabled = true;
+  document.getElementById('confidence-slider-value').value = "";
+
+  document.getElementById('button-add-forbidden').addEventListener("click", addNewForbiddenRegion);
+  document.getElementById('button-delete-forbidden').disabled = true;
+  document.getElementById('button-delete-forbidden').addEventListener("click", deleteForbiddenRegion);
+
+  parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+  parent.task.document.getElementById('test-button').addEventListener("click", runPilotTest);
+
+  document.getElementById('button-mobo').addEventListener("click", runMOBO);
+
+  let coverageBar = progbar(document.getElementById("progress-coverage"));
+  coverageBar.set(0);
+
+  let moboBar = progbar(document.getElementById("use-of-mobo"));
+  moboBar.set(0);
+}
+
 function readTextFile(file, callback) {
   var rawFile = new XMLHttpRequest();
   rawFile.overrideMimeType("application/json");
@@ -8,56 +109,6 @@ function readTextFile(file, callback) {
       }
   }
   rawFile.send(null);
-}
-
-var numParams;
-var numObjs;
-var parameterNames;
-var objectiveNames;
-var parameterBounds;
-var objectiveBounds;
-
-var renderRegionPlot;
-var regionData;
-var evaluatedDesigns;
-var forbidRangeData;
-
-var designLineData = [{id: "current", x1: 0.5, x2: 0.5, x3: 0.5, x4: 0.5, x5: 0.5}]
-
-async function renderMoboInterface() {
-
-  readTextFile("../configs/config.json", async function(text){
-    config = JSON.parse(text);
-    numParams = config["dimx"];
-    numObjs = config["dimobj"];
-    parameterNames = config["parameters"];
-    objectiveNames = config["objectives"];
-    parameterBounds = config["xbounds"];
-    objectiveBounds = config["ybounds"];
-
-    regionData = await parseRegions("../data/regions.csv");
-    evaluatedDesigns = await parseDesigns("../data/data.csv")
-    forbidRangeData = await parseRanges("../data/ranges.csv")
-
-    constructParameterSlider();
-    drawPcp();
-    drawScatter();
-    renderRegionPlot = drawRegionPlot();
-    renderRegionList();
-
-    document.getElementById('confidence-slider').value = 0.5;
-    document.getElementById('confidence-slider').disabled = true;
-    document.getElementById('confidence-slider-value').value = "";
-
-    document.getElementById('button-add-forbidden').addEventListener("click", addNewForbiddenRegion);
-    document.getElementById('button-delete-forbidden').disabled = true;
-    document.getElementById('button-delete-forbidden').addEventListener("click", deleteForbiddenRegion);
-
-    parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
-    parent.task.document.getElementById('test-button').addEventListener("click", runPilotTest);
-
-    document.getElementById('button-mobo').addEventListener("click", runMOBO);
-  });
 }
 
 function renderTaskInterface() {
@@ -74,9 +125,9 @@ function constructParameterSlider() {
   console.log("Loading sliders")
 
   for (var i = 0; i < numParams; i++){
-      var inputTxt = "<input type='range' min=" + parameterBounds[i][0] + " max=" + parameterBounds[i][1] + " value='0.50' step='0.01' class='slider'"
+      var inputTxt = "<input type='range' min=" + parameterBounds[i][0] + " max=" + parameterBounds[i][1] + " value='" + (parameterBounds[i][0] + parameterBounds[i][1]) / 2 + "' step='0.01' class='slider'"
       + " id=" + "'param" + (i+1) + "slider'" + " name=" + "'param" + (i+1) + "'" + " oninput='this.nextElementSibling.value = this.value'>";
-      var outputTxt = "<output id='param"+ (i+1) + "output'>0.5</output>"
+      var outputTxt = "<output id='param"+ (i+1) + "output'>" + (parameterBounds[i][0] + parameterBounds[i][1]) / 2 + "</output>"
       var breakTxt = "<br><br>"
 
       // console.log(inputTxt);
@@ -93,6 +144,50 @@ function constructParameterSlider() {
   for (var i = 0; i < numParams; i++){
     parent.task.document.getElementById('param' + (i+1) + 'slider').addEventListener("input", drawGuidingLine);
   }
+}
+
+function normalizeParameters(parameters, bounds){
+  var normalizedParams = [];
+  for (var i = 0; i < numParams; i++){
+    var upperBound = Number(bounds[i][1]);
+    var lowerBound = Number(bounds[i][0]);
+    var normParam = (Number(parameters[i]) - lowerBound) / (upperBound - lowerBound);
+    normalizedParams.push(normParam);
+  }
+  return normalizedParams;
+}
+
+function unnormalizeParameters(parameters, bounds){
+  var unnormalizedParams = [];
+  for (var i = 0;i < numParams; i++){
+    var upperBound = Number(bounds[i][1]);
+    var lowerBound = Number(bounds[i][0]);
+    var unnormParam = lowerBound + Number(parameters[i]) * (upperBound - lowerBound);
+    unnormalizedParams.push(unnormParam);
+  }
+  return unnormalizedParams;
+}
+
+function normalizeObjectives(objectives, bounds){
+  var normalizedObjs = [];
+  for (var i = 0; i < numObjs; i++){
+    var upperBound = Number(bounds[i][1]);
+    var lowerBound = Number(bounds[i][0]);
+    var normObj = 2 * (Number(objectives[i]) - lowerBound) / (upperBound - lowerBound) - 1;
+    normalizedObjs.push(normObj);
+  }
+  return normalizedObjs;
+}
+
+function unnormalizeObjectives(objectives, bounds){
+  var unnormalizedObjs = [];
+  for (var i = 0; i < numObjs; i++){
+    var upperBound = Number(bounds[i][1]);
+    var lowerBound = Number(bounds[i][0]);
+    var unnormObj = lowerBound + 0.5 * (Number(objectives[i]) + 1) * (upperBound - lowerBound);
+    unnormalizedObjs.push(unnormObj);
+  }
+  return unnormalizedObjs;
 }
 
 const svgWidth = 500;
@@ -308,12 +403,13 @@ const onClickDesign = function(event, d){
     .attr("r", 7)
 
   let parameterValues = JSON.parse("[" + d3.select(this).attr("design") + "]");
-  
+  var unnormalizedParamVals = unnormalizeParameters(parameterValues, parameterBounds);
+
   // console.log(parameterValues);
   for (var i = 0; i < numParams; i++){
     // console.log(parameterValues[i]);
-    parent.task.document.getElementById('param' + (i+1) + 'slider').value = parameterValues[i];
-    parent.task.document.getElementById('param' + (i+1) + 'output').value = parameterValues[i];
+    parent.task.document.getElementById('param' + (i+1) + 'slider').value = unnormalizedParamVals[i];
+    parent.task.document.getElementById('param' + (i+1) + 'output').value = unnormalizedParamVals[i];
   }
 
   drawGuidingLine();
@@ -335,6 +431,8 @@ function pathPcp(d) {
 // Function to draw the PCP plots for the evaluated designs
 function drawPcp() {
   // append the svg object to the body of the page
+  svgPcp.selectAll("*").remove();
+
   dimensionsPcp = parameterNames;
 
   const yPcp = {}
@@ -419,8 +517,10 @@ const drawGuidingLine = function(event){
     paramSliders.push(valueSlider);
   }
 
+  var paramNormSliders = normalizeParameters(paramSliders, parameterBounds);
+
   for (var i = 0; i < numParams; i++){
-    designLineData[0][parameterNames[i]] = paramSliders[i];
+    designLineData[0]["x" + (i+1)] = paramNormSliders[i];
   }
 
   d3.selectAll(".line").filter(function(){
@@ -526,12 +626,13 @@ const onClickScatter = function(event, d){
     .style("stroke-width", "4")
 
   let parameterValues = JSON.parse("[" + lineDesign.attr("design") + "]");
-  
+  var unnormalizedParamVals = unnormalizeParameters(parameterValues, parameterBounds);
+
   // console.log(parameterValues);
   for (var i = 0; i < numParams; i++){
     // console.log(parameterValues[i]);
-    parent.task.document.getElementById('param' + (i+1) + 'slider').value = parameterValues[i];
-    parent.task.document.getElementById('param' + (i+1) + 'output').value = parameterValues[i];
+    parent.task.document.getElementById('param' + (i+1) + 'slider').value = unnormalizedParamVals[i];
+    parent.task.document.getElementById('param' + (i+1) + 'output').value = unnormalizedParamVals[i];
   }
 
   drawGuidingLine();
@@ -562,6 +663,8 @@ const doNotHighlightScatter = function(event, d){
 
 // Function to draw the scattered plots for the objective values of the evaluated designs
 function drawScatter() {
+  svgScatter.selectAll("*").remove();
+
   const x = d3.scaleLinear()
       .domain(objectiveBounds[0])
       .range([ 0, width ]);
@@ -582,8 +685,8 @@ function drawScatter() {
       .attr("value", function (d) {return d.id;})
       .attr("class", function (d) { return "dot" } )
       .attr("objectives", function (d) {return [d.y1, d.y2]; })
-      .attr("cx", function (d) { return x(d.y1); } )
-      .attr("cy", function (d) { return y(d.y2); } )
+      .attr("cx", function (d) { return x(0.5 * (Number(d.y1) + 1) * (objectiveBounds[0][1] - objectiveBounds[0][0]) + objectiveBounds[0][0]); } )
+      .attr("cy", function (d) { return y(0.5 * (Number(d.y2) + 1) * (objectiveBounds[1][1] - objectiveBounds[1][0]) + objectiveBounds[1][0]); } )
       .attr("r", 5)
       .style("fill", "lightblue")
   .on("mouseover", highlightScatter)
@@ -1252,9 +1355,17 @@ function addNewForbiddenRegion() {
   var upperBounds = [];
   var lowerBounds = [];
   var defaultConfidence = 0.8;
+
+  var slidersValues = [];
+  for (var i = 0; i < numParams; i++){
+    slidersValues.push(Number(parent.task.document.getElementById('param' + (i+1) + 'slider').value));
+  }
+
+  var normalizedSlidersValues = normalizeParameters(slidersValues, parameterBounds);
+
   for (var i = 0; i < numParams; i++){
     // console.log(parameterValues[i]);
-    dataEntered = Number(parent.task.document.getElementById('param' + (i+1) + 'slider').value);
+    dataEntered = normalizedSlidersValues[i];
     upperBounds.push(Math.min(dataEntered + defaultWidth, 1.0));
     lowerBounds.push(Math.max(dataEntered - defaultWidth, 0.0));
   }
@@ -1274,6 +1385,8 @@ function addNewForbiddenRegion() {
     upperBound: upperBounds, 
     confidence: String(defaultConfidence)};
   regionData.push(newRegionData);
+
+  console.log(regionData);
 
   drawRegionPlot();
   renderRegionList();
@@ -1363,13 +1476,19 @@ function deleteForbiddenRegion() {
 
 // Function to add a custom forbidden range depending on slider value
 const addForbiddenRange = function(event) {
-  var dimensionSelected = d3.select(this).attr("dim");
+  var dimensionSelected = Number(d3.select(this).attr("dim"));
   var defaultWidth = 0.05;
   var defaultConfidence = 0.8;
 
+  var upperBoundParam = parameterBounds[dimensionSelected-1][1];
+  var lowerBoundParam = parameterBounds[dimensionSelected-1][0];
+
+
   var dataEntered = Number(parent.task.document.getElementById('param' + (dimensionSelected) + 'slider').value);
-  var upperBound = Math.min(dataEntered + defaultWidth, 1.0)
-  var lowerBound = Math.max(dataEntered - defaultWidth, 0.0)
+  var dataEnteredNorm = (dataEntered - lowerBoundParam) / (upperBoundParam - lowerBoundParam);
+
+  var upperBound = Math.min(dataEnteredNorm + defaultWidth, 1.0)
+  var lowerBound = Math.max(dataEnteredNorm - defaultWidth, 0.0)
 
   var takenMaxID = 0;
   for (var i = 0; i < forbidRangeData.length; i++){
@@ -1386,6 +1505,8 @@ const addForbiddenRange = function(event) {
     up: upperBound, 
     confidence: String(defaultConfidence)};
   forbidRangeData.push(newRegionData);
+
+  console.log(forbidRangeData);
 
   drawRegionPlot();
   renderRegionList();
@@ -1445,6 +1566,7 @@ function runPilotTest() {
   $('.button').prop('disabled', true);
   parent.task.document.getElementById("test-button").disabled = true;
   parent.task.document.getElementById("evaluation-button").disabled = true;
+  parent.task.document.querySelectorAll("slider").disabled = true;
 
   var paramVals = [];
   var inputSliders = parent.task.document.querySelectorAll(".slider");
@@ -1452,6 +1574,7 @@ function runPilotTest() {
   console.log(inputSliders);
 
   for (var i = 0; i < inputSliders.length; i++){
+    inputSliders[i].disabled = true;
     var name = inputSliders[i].id;
     var val = inputSliders[i].value;
     console.log(name + ": " + val);
@@ -1485,10 +1608,9 @@ function runFormalTest() {
 
   var paramVals = [];
   var inputSliders = parent.task.document.querySelectorAll(".slider");
-  
-  console.log(inputSliders);
 
   for (var i = 0; i < inputSliders.length; i++){
+    inputSliders[i].disabled = true;
     var name = inputSliders[i].id;
     var val = inputSliders[i].value;
     console.log(name + ": " + val);
@@ -1512,8 +1634,8 @@ function runFormalTest() {
 
 // Get test result from formal evaluation or pilot test
 function getTestResult(paramVals, testType) {
-  var paramValsJson = JSON.stringify(paramVals);
-  var objVals;
+  var paramValsNorm = normalizeParameters(paramVals, parameterBounds);
+  var paramValsJson = JSON.stringify(paramValsNorm);
 
   $.ajax({
       url: "/cgi/query_function.py",
@@ -1524,7 +1646,9 @@ function getTestResult(paramVals, testType) {
       success: function(result) {
         submitReturned = true;
         // console.log(result.message);
-        objVals = JSON.parse(result.message).obj_vals;
+        var objValsNorm = JSON.parse(result.message).obj_vals;
+
+        var objVals = unnormalizeObjectives(objValsNorm, objectiveBounds);
 
         // TODO handle returned objVals
         parent.task.document.getElementById("test-result").innerHTML += "<br>" + (parseFloat(objVals[0]).toFixed(2) + " , " + parseFloat(objVals[1]).toFixed(2));
@@ -1537,23 +1661,83 @@ function getTestResult(paramVals, testType) {
         if (testType == TestType.FORMAL){
           var maxID = evaluatedDesigns.length;
           var newDesignData = {id: maxID+1,
-                              x1: parseFloat(paramVals[0]).toFixed(2),
-                              x2: parseFloat(paramVals[1]).toFixed(2),
-                              x3: parseFloat(paramVals[2]).toFixed(2),
-                              x4: parseFloat(paramVals[3]).toFixed(2),
-                              x5: parseFloat(paramVals[4]).toFixed(2),
-                              y1: parseFloat(objVals[0]).toFixed(2),
-                              y2: parseFloat(objVals[1]).toFixed(2)}
+                              x1: parseFloat(paramValsNorm[0]).toFixed(2),
+                              x2: parseFloat(paramValsNorm[1]).toFixed(2),
+                              x3: parseFloat(paramValsNorm[2]).toFixed(2),
+                              x4: parseFloat(paramValsNorm[3]).toFixed(2),
+                              x5: parseFloat(paramValsNorm[4]).toFixed(2),
+                              y1: parseFloat(objValsNorm[0]).toFixed(2),
+                              y2: parseFloat(objValsNorm[1]).toFixed(2)}
           evaluatedDesigns.push(newDesignData);
+
+          var coverageResult = getCoverageResult(evaluatedDesigns, numSubdivisions, numParams);
+          let coverageBar = progbar(document.getElementById("progress-coverage"));
+          coverageBar.set(Math.floor(100 * coverageResult));
+
+          if (moboUsed){
+            numberMOBOUsed += 1;
+          }
+          var moboUsedResult = Math.floor(100 * (numberMOBOUsed / evaluatedDesigns.length));
+          let moboBar = progbar(document.getElementById("use-of-mobo"));
+          moboBar.set(moboUsedResult);
+
+          moboUsed = false;
         }
 
         drawPcp();
         drawScatter();
+
+        var inputSliders = parent.task.document.querySelectorAll(".slider");
+        for (var i = 0; i < inputSliders.length; i++){
+          inputSliders[i].disabled = false;
+        }
       },
       error: function(result){
           console.log("Error in getTestResult: " + result.message);
       }
   });
+}
+
+// Function to get hypercube coverage - design coverage metric
+function getCoverageResult(evaluatedDesigns, numSubdivisions, numParams){
+  var hyperCubesCovered = new Set();
+  for (var i = 0; i < evaluatedDesigns.length; i++){
+    var design = [evaluatedDesigns[i].x1, evaluatedDesigns[i].x2, evaluatedDesigns[i].x3, evaluatedDesigns[i].x4, evaluatedDesigns[i].x5];
+    var indexHypercube = whichHypercube(design, numSubdivisions);
+    if (!hyperCubesCovered.has(indexHypercube)){
+      hyperCubesCovered.add(whichHypercube(design, numSubdivisions));
+    }
+  }
+
+  console.log(hyperCubesCovered);
+  return hyperCubesCovered.size / (numSubdivisions ** numParams);
+}
+
+// Function to get which hypercube a design lies in
+function whichHypercube(evaluatedDesign, numSubdivisions){
+  var hyperCube = "";
+  for (var i = 0; i < numParams; i++){
+    var index = Math.min(numSubdivisions-1, Math.floor(numSubdivisions * evaluatedDesign[i]));
+    hyperCube += String(index);
+  }
+  return hyperCube;
+}
+
+function progbar (instance) {
+  instance.classList.add("prog-wrap");
+  
+  instance.innerHTML =
+    `<div class="prog-bar"></div>
+     <div class="prog-percent">0%</div>`;
+  instance.hbar = instance.querySelector(".prog-bar");
+  instance.hpercent = instance.querySelector(".prog-percent");
+
+  instance.set = (percent) => {
+    instance.hbar.style.width = percent + "%";
+    instance.hpercent.innerHTML = percent + "%";
+  };
+
+  return instance;
 }
 
 // Function to run MOBO when clicked button
@@ -1565,8 +1749,14 @@ function runMOBO(){
   $('.button').prop('disabled', true);
   parent.task.document.getElementById("test-button").disabled = true;
   parent.task.document.getElementById("evaluation-button").disabled = true;
+  
+  var inputSliders = parent.task.document.querySelectorAll(".slider");
+  for (var i = 0; i < inputSliders.length; i++){
+    inputSliders[i].disabled = true;
+  }
 
   getMOBOResult(evaluatedDesigns, regionData, forbidRangeData);
+  moboUsed = true;
 
   var waitTime = 5; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
@@ -1619,6 +1809,10 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
     processedRegions.push(totalForbiddenRange);
   }
 
+  console.log(processedX);
+  console.log(processedY);
+  console.log(processedRegions);
+
   var designParamsJson = JSON.stringify(processedX);
   var objectivesJson = JSON.stringify(processedY);
   var forbidRegionsJson = JSON.stringify(processedRegions);
@@ -1634,16 +1828,24 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
         submitReturned = true;
 
         var proposedLocation = JSON.parse(result.message).proposed_location;
+        var proposedLocationUnnormalized = unnormalizeParameters(proposedLocation, parameterBounds);
         // console.log(proposedLocation);
         for (var i = 0; i < numParams; i++){
           // console.log(parameterValues[i]);
-          parent.task.document.getElementById('param' + (i+1) + 'slider').value = proposedLocation[i];
-          parent.task.document.getElementById('param' + (i+1) + 'output').value = proposedLocation[i];
+          parent.task.document.getElementById('param' + (i+1) + 'slider').value = proposedLocationUnnormalized[i];
+          parent.task.document.getElementById('param' + (i+1) + 'output').value = proposedLocationUnnormalized[i];
         }
 
         $('.button').prop('disabled', false);
         parent.task.document.getElementById("test-button").disabled = false;
         parent.task.document.getElementById("evaluation-button").disabled = false;
+        
+        var inputSliders = parent.task.document.querySelectorAll(".slider");
+        for (var i = 0; i < inputSliders.length; i++){
+          inputSliders[i].disabled = false;
+        }
+
+        drawGuidingLine();
       },
       error: function(result){
           console.log("Error in getTestResult: " + result.message);

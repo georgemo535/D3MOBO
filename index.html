@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Settings Page</title>
+    <style>
+      body, html{
+        min-height: 100%;
+        height: 100%;
+        margin: 0px;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+      }
+
+      input[type=number] {
+        width: 25%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Settings</h1>
+    <div class="container">
+      <label for="participant-id"><b>Participant ID</b></label>
+      <input type="number" placeholder="Enter Participant ID" name="participant-id" id="input-id" required>
+
+      <label for="exp-condition"><b>Condition</b></label>
+      <select id="design-conditions">
+        <option value="0">Hybrid</option>
+        <option value="1">Designer-Led</option>
+        <option value="2">MOBO</option>
+      </select>
+
+      <label for="application"><b>Application</b></label>
+      <select id="application-conditions">
+        <option value="0">Twitter</option>
+        <option value="1">Amazon</option>
+        <option value="2">Google Maps</option>
+      </select>
+    </div>
+<!-- 
+    <button onclick="location.href='main.php'; hello();" type="button">
+    </button> -->
+
+    <button onclick="nextPage();" type="button"> Enter
+    </button>
+
+    <script>
+      function nextPage() {
+        var participantID = document.getElementById("input-id").value;
+        var experimentCondition = document.getElementById("design-conditions").value;
+        var applicationCondition = document.getElementById("application-conditions").value;
+
+        var idValid = ((Number(participantID) > 0));
+
+        if (idValid) {
+          localStorage.setItem("id", participantID);
+          localStorage.setItem("exp-condition", experimentCondition);
+          localStorage.setItem("app", applicationCondition);
+
+          var url = "main.php";
+          location.href = url;
+        }
+      }
+    </script>
+  </body>
+</html>

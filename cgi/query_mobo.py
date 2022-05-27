@@ -65,18 +65,26 @@ else:
     objectiveVals = torch.tensor(np.float_(json.loads(formData['objectives'].value)), dtype=torch.float64)
     forbiddenRegions = np.float_(json.loads(formData['forbidden_regions'].value))
 
-    gpr = initialize_model(designParams, objectiveVals)
-    mll = ExactMarginalLogLikelihood(gpr.likelihood, gpr)
-    fit_gpytorch_model(mll)
+    if len(designParams) == 0:
+        result = { "proposed_location": list(np.random.uniform(size=num_params))}
+    else:
+        gpr = initialize_model(designParams, objectiveVals)
+        mll = ExactMarginalLogLikelihood(gpr.likelihood, gpr)
+        fit_gpytorch_model(mll)
 
-    lower_bound_points = forbiddenRegions[:, :num_params]
-    upper_bound_points = forbiddenRegions[:, num_params: 2*num_params]
-    confidences = forbiddenRegions[:, -1]
+        if len(forbiddenRegions.shape) == 1:
+            lower_bound_points = []
+            upper_bound_points = []
+            confidences = []
+        else:
+            lower_bound_points = forbiddenRegions[:, :num_params]
+            upper_bound_points = forbiddenRegions[:, num_params: 2*num_params]
+            confidences = forbiddenRegions[:, -1]
 
-    proposed_location = propose_location_general(designParams, objectiveVals, lower_bound_points, upper_bound_points,
-                                                confidences, gpr, bounds, alpha, max_hypv, ref_point, n_restarts=10)
-    
-    result = { "proposed_location": list(np.around((proposed_location), 2))}
+        proposed_location = propose_location_general(designParams, objectiveVals, lower_bound_points, upper_bound_points,
+                                                    confidences, gpr, bounds, alpha, max_hypv, ref_point, n_restarts=10)
+        
+        result = { "proposed_location": list(np.around((proposed_location), 2))}
     message = json.dumps(result)
 
 reply = {}
