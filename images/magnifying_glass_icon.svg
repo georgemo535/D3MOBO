@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="400"
+   height="400"
+   id="svg6386"
+   version="1.1"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="magnifying_glass_icon.svg">
+  <title
+     id="title5920">Magnifying glass</title>
+  <defs
+     id="defs6388" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.61"
+     inkscape:cx="-192.62295"
+     inkscape:cy="200"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata6391">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Magnifying glass</dc:title>
+        <dc:date>2017-01-16</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>m1981</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Public domain</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:publisher>
+          <cc:Agent>
+            <dc:title>Inkscape</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>icon</rdf:li>
+            <rdf:li>find</rdf:li>
+            <rdf:li>magnifying glass</rdf:li>
+            <rdf:li />
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-652.36218)">
+    <path
+       inkscape:connector-curvature="0"
+       id="path4142"
+       d="m 38.495471,710.12143 c -7.620593,8.49781 -14.282158,18.07953 -19.794445,28.6495 -35.279082,67.64819 -9.5590724,151.49095 57.783272,186.61044 52.035662,27.13707 113.715532,17.23023 155.339882,-19.87051 l 13.54702,12.43199 c -1.71642,1.58695 -3.45962,3.14716 -5.2461,4.65796 -3.08999,2.61899 -4.9747,6.6157 -5.05157,10.66555 -0.0769,4.04983 1.65544,8.08506 4.64386,10.81935 l 94.63127,86.84249 c 15.13494,13.8892 39.13298,13.0687 53.04075,-2.0865 13.90777,-15.1551 12.70088,-39.1669 -2.43552,-53.05746 l -94.89496,-87.08446 c -2.81074,-2.58075 -6.70551,-3.97625 -10.51517,-3.75979 -3.80967,0.21645 -7.48387,2.04204 -9.98408,4.92462 -0.35377,0.40671 -0.68452,0.83337 -0.9901,1.2773 -1.29182,1.88315 -2.63478,3.73119 -4.00442,5.55455 l -13.44812,-12.34124 c 4.2277,-5.733 8.07142,-11.87513 11.46458,-18.38156 35.27899,-67.64809 9.55907,-151.49096 -57.78326,-186.61044 -56.82011,-29.63207 -125.151592,-15.1303 -166.302941,30.75817 z m 21.523992,19.02379 c 32.741631,-36.67992 86.624007,-47.93436 131.584667,-24.48698 53.2867,27.78947 73.78234,93.74708 45.48752,148.00289 -28.29482,54.25582 -94.12637,75.21474 -147.413075,47.42526 -53.286807,-27.78935 -73.782437,-93.74697 -45.487521,-148.0029 4.420971,-8.47736 9.765112,-16.14565 15.828409,-22.93827 z m 20.963657,18.50956 a 7.1802634,7.1802634 0 1 0 10.580512,9.70966 c 25.314168,-27.58458 68.018128,-29.44909 95.602678,-4.13495 4.35498,3.99653 8.14261,8.55353 11.31487,13.54099 a 7.1654798,7.1654798 0 0 0 12.0824,-7.67431 c -3.84363,-6.04313 -8.44113,-11.57181 -13.71787,-16.41423 -33.28486,-30.54529 -85.31728,-28.31205 -115.86259,4.97284 z m 58.25444,125.29092 a 7.1586092,7.1586092 0 0 0 5.67652,12.00988 c 14.37206,-0.61685 28.34935,-5.03612 40.48752,-12.75639 a 7.1586092,7.1586092 0 1 0 -7.70461,-12.0495 c -10.01837,6.372 -21.5339,10.0115 -33.39603,10.52059 a 7.1586092,7.1586092 0 0 0 -5.0634,2.27542 z m 142.99892,47.43604 83.35859,76.49756 c 3.93246,3.6088 4.10781,8.8893 0.69921,12.6035 -3.40861,3.7144 -8.6528,3.9606 -12.58679,0.3503 l -83.25971,-76.40686 c 4.13826,-4.16256 8.05726,-8.51094 11.78876,-13.04446 z"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#4d4d4d;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.43157864;enable-background:accumulate" />
+  </g>
+</svg>
