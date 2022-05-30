@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v6.js"></script>
+</head>
+<body>
+    <div style="text-align: center;">
+        <svg id="twitter-clone-interface"></svg>
+    </div>
+    <script>
+        var width = 420,
+    height = 475;
+
+    var svg = d3.select("#twitter-clone-interface")
+        .attr("width", width)
+        .attr("height", height);
+
+    var gTitle = svg.append("g")
+                 .attr("transform","translate(" + 0 + "," + 25 + ")");
+
+    var img = gTitle.append("svg:image")
+        .attr("xlink:href", "./images/chicken_logo.svg")
+        .attr("width", 50)
+        .attr("height", 50)
+        .attr("x", 40)
+        .attr("y",5);
+
+        gTitle.append("text")
+            .attr("x", 100)
+            .attr("y", 45)
+            .attr("style","font-size: 30pt; font-family: cursive;")
+            .text("Chicken Feed");
+
+    var gNotifications = svg.append("g")
+        .attr("id","g-notifications");
+
+
+
+    var gTweets = svg.append("g")    
+        .attr("id","g-tweets")
+        .attr("transform","translate(" + 10 + "," + 90 + ")");
+
+    function addTweet(id) {
+
+        var gTweet = gTweets.append("g")    
+            .attr("class","g-tweet")
+            .attr("transform", "translate(" + 0 + ", " + id * 140 + ")");
+
+        gTweet.append("rect")
+            .attr("rx", 6)
+            .attr("ry", 6)
+            .attr("width", 400)
+            .attr("height", 100)
+            .attr("stroke","black")
+            .attr("fill","white");
+
+        gTweet.append("svg:image")
+            .attr("xlink:href", "./images/user_icon.svg")
+            .attr("width", 30)
+            .attr("height", 30)
+            .attr("x", 5)
+            .attr("y", 5);
+
+        gTweet.append("svg:image")
+            .attr("class","moderation-icon")
+            .attr("xlink:href", "./images/magnifying_glass_icon.svg")
+            .attr("width", 30)
+            .attr("height", 30)
+            .attr("x", 10)
+            .attr("y", 50);
+
+        gTweet.append("text")            
+            .attr("transform", "translate(50,5)")
+            .attr("dy", "1em")
+            .text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")
+            .call(wrap,350);
+
+        gLikes = gTweet.append("g")
+            .attr("class","g-likes")
+            .attr("transform", "translate(370,70)");
+
+        gLikes.append("svg:image")
+            .attr("xlink:href", "./images/thumbs_up_icon.svg")
+            .attr("width", 30)
+            .attr("height", 30);
+    }
+
+    addTweet(0);
+    addTweet(1);
+    addTweet(2);
+
+    var gAds = svg.append("g")    
+        .attr("class","g-ads")
+        .attr("transform","translate(" + 10 + "," + 90 + ")");
+
+    function addAdvertisement(row,column) {
+
+        var gAd = gAds.append("g")    
+            .attr("class","g-advertisement")
+            .attr("transform", "translate(" + (column * 81)  + ", " + (105 + row * 140) + ")");
+
+        gAd.append("rect")
+            .attr("rx", 6)
+            .attr("ry", 6)
+            .attr("width", 75)
+            .attr("height", 30)
+            .attr("stroke","black")
+            .attr("fill",d3.rgb(200, 200, 200));
+
+        gAd.append("svg:image")
+            .attr("xlink:href", "./images/ad_icon.svg")
+            .attr("width", 20)
+            .attr("height", 20)
+            .attr("x", 5)
+            .attr("y", 5);
+
+        gAd.append("text")            
+            .attr("transform", "translate(30,5)")
+            .attr("dy", "1em")
+            .text("Buy!");
+    }
+
+    addAdvertisement(0,0);
+    addAdvertisement(1,0);
+
+    var refreshImg = svg.append("svg:image")
+        .attr("xlink:href", "./images/loading_circle_icon.svg")
+        .attr("width", 60)
+        .attr("height", 60)
+        .attr("x", 350)
+        .attr("y", 20);
+
+    
+    //
+    // Design callbacks
+    //
+
+    // Rate assumed to be [0,1]
+    function setAdvertisementRate(rate) {
+        // Clear all existing
+        gAds.selectAll("*").remove();
+
+        var nMaxAds = 5;
+        var nAds = Math.round(nMaxAds * rate);
+              
+        for (var i = 0; i < nAds; i++) {
+            addAdvertisement(0, i);
+            addAdvertisement(1, i);
+        }
+    };
+
+    // Rate assumed to be [0,1]
+    function setPersonalizationRate(rate) {
+        // Clear all existing
+        d3.selectAll(".g-likes")
+            .each(function(d) {
+                d3.select(this).selectAll("*").remove();
+            });
+
+        var nMaxIcons = 20;
+        var nIcons = Math.round(nMaxIcons * rate);
+
+        d3.selectAll(".g-likes")
+            .each(function(d) {                
+                for (var i = 0; i < nIcons; i++) {
+                    d3.select(this)
+                        .append("svg:image")
+                        .attr("xlink:href", "./images/thumbs_up_icon.svg")
+                        .attr("width", 30)
+                        .attr("height", 30)
+                        .attr("x", -(i * 12.5));
+                }
+            });
+    };
+
+    // Rate assumed to be [0,1]
+    function setRefreshRate(rate) {
+        refreshRate = 1 + (2 * rate);
+    };
+
+    // Rate assumed to be [0,1]
+    function setModerationRate(rate) {
+
+        var imgScale =10 + (40 * rate);
+
+        // Clear all existing
+        d3.selectAll(".moderation-icon")
+            .each(function(d) {
+                // your update code here as it was in your example
+                d3.select(this) // Transform to d3 Object
+                    .attr("width", imgScale)
+                    .attr("height", imgScale);
+            });
+        
+    };
+
+    // Rate assumed to be [0,1]
+    function setNotificationRate(rate) {
+        // Clear all existing
+        gNotifications.selectAll("*").remove();
+
+        var nMaxIcons = 20;
+        var nIcons = Math.round(nMaxIcons * rate);
+
+        for (var i = 0; i < nIcons; i++) {
+            var img = gNotifications.append("svg:image")
+            .attr("xlink:href", "./images/notification_icon.svg")
+            .attr("width", 20)
+            .attr("height", 20)
+            .attr("x", 5 + (i * 20))
+            .attr("y",5);
+        }
+    };
+    
+
+    // Refresh image spinning
+    var i = 0;
+    var timeInterval = 10;
+    var refreshRate = 10;
+    setInterval(function(){
+        i += refreshRate;
+        update(i % 360) 
+    },timeInterval);
+
+    const centre = refreshImg.node().getBBox();
+    var n;
+    // update the element
+        function update(n) {    
+        refreshImg.attr("transform", "rotate(" + n + ", " + (centre.x + centre.width / 2) + ", " + (centre.y + centre.height / 2) + ")");
+    }
+
+    // Text wrapping for tweet
+    function wrap(text, width) {
+        text.each(function() {
+            var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            y = text.attr("y"),
+            dy = parseFloat(text.attr("dy")),
+            tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+            while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", lineHeight + "em").text(word);
+            }
+            }
+        });        
+    }
+
+    </script>
+    <script>
+        $( window ).on('load', function() {
+            setTimeout(function() 
+            {   
+                $("#param1slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p1 = (val - min) / (max - min);
+                    setAdvertisementRate(p1);
+                })
+
+                $("#param2slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p2 = (val - min) / (max - min);
+                    setPersonalizationRate(p2);
+                })
+
+                $("#param3slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p3 = (val - min) / (max - min);
+                    setRefreshRate(p3);
+                })
+
+                $("#param4slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p4 = (val - min) / (max - min);
+                    setModerationRate(p4);
+                })
+
+                $("#param5slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p5 = (val - min) / (max - min);
+                    setNotificationRate(p5);
+                })
+
+                // Initialize
+                var p1El = $("#param1slider", window.parent.document);
+                var p2El = $("#param2slider", window.parent.document);
+                var p3El = $("#param3slider", window.parent.document);
+                var p4El = $("#param4slider", window.parent.document);
+                var p5El = $("#param5slider", window.parent.document);
+
+                setAdvertisementRate(normalizedSliderVal(p1El));
+                setPersonalizationRate(normalizedSliderVal(p2El));
+                setRefreshRate(normalizedSliderVal(p3El));
+                setModerationRate(normalizedSliderVal(p4El));
+                setNotificationRate(normalizedSliderVal(p5El));
+
+            }, 200);
+        });
+
+        function normalizedSliderVal(el) {
+            var val = $(el).val();
+            var max = $(el).prop('max');
+            var min = $(el).prop('min');
+            return (val - min) / (max - min);
+        }
+    </script>
+</body>
+</html>
