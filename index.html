@@ -18,34 +18,63 @@
         border: 1px solid #ccc;
         box-sizing: border-box;
       }
+
+      h1 {text-align: center;}
+
+      button {
+        margin:auto;
+        display:block;
+      }
     </style>
   </head>
   <body>
     <h1>Settings</h1>
     <div class="container">
-      <label for="participant-id"><b>Participant ID</b></label>
-      <input type="number" placeholder="Enter Participant ID" name="participant-id" id="input-id" required>
-
-      <label for="exp-condition"><b>Condition</b></label>
-      <select id="design-conditions">
-        <option value="0">Hybrid</option>
-        <option value="1">Designer-Led</option>
-        <option value="2">MOBO</option>
-      </select>
-
-      <label for="application"><b>Application</b></label>
-      <select id="application-conditions">
-        <option value="0">Twitter</option>
-        <option value="1">Amazon</option>
-        <option value="2">Google Maps</option>
-      </select>
+      <table style="width: 1200px; margin-left:auto;margin-right:auto;">
+        <tr><td>
+            <div id="participant-id-div">
+              <label for="participant-id"><b>Participant ID</b></label>
+            </div>
+        </td><td>
+            <div id="participant-id-div-input">
+              <input type="number" placeholder="Enter Participant ID" name="participant-id" id="input-id" required>
+            </div>
+        </td>
+        </tr>
+        <tr><td>
+          <div id="exp-condition-div">
+            <label for="exp-condition"><b>Condition</b></label>
+          </div>
+        </td><td>
+          <select id="design-conditions">
+            <option value="0">Hybrid</option>
+            <option value="1">Designer-Led</option>
+            <option value="2">MOBO</option>
+          </select>
+        </td>
+        </tr>
+        <tr><td>
+          <label for="application"><b>Application</b></label>
+        </td>
+        <td>
+          <select id="application-conditions">
+            <option value="0">Twitter</option>
+            <option value="1">Amazon</option>
+            <option value="2">Google Maps</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <button onclick="nextPage();" type="button"> Enter
+          </button>
+        </td>
+      </tr>
+    </table>
     </div>
 <!-- 
     <button onclick="location.href='main.php'; hello();" type="button">
     </button> -->
-
-    <button onclick="nextPage();" type="button"> Enter
-    </button>
 
     <script>
       function nextPage() {

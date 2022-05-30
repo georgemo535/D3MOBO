@@ -9,6 +9,7 @@ import numpy as np
 import sqlite3
 import time
 import random
+import sqlite3
 from synthetic_function import *
 
 # Initialize the basic reply message
@@ -58,7 +59,7 @@ def testPerformance(paramValues, testType):
     return values.tolist()[0]
 
 # Check that form values have been defined
-expectedArgs = ['param_vals', 'test_type']
+expectedArgs = ['param_vals', 'test_type', 'participant_id', 'application_id', 'condition_id']
 formValuesDefined = checkFormData(formData,expectedArgs)
 
 # Report error if
@@ -68,9 +69,17 @@ if not formValuesDefined:
 else:
     # Parse arguments
     paramValsStr = formData['param_vals'].value
-    paramValsStrArray = json.loads(paramValsStr)    
-    paramVals = np.array([[float(i) for i in paramValsStrArray]])
-    testType = int(formData['test_type'].value)
+    paramValsRaw = json.loads(paramValsStr)    
+    paramVals = np.array([[float(i) for i in paramValsRaw]])
+    paramValsStrArray = str(paramVals)
+
+    testTypeStr = formData['test_type'].value
+    testType = int(testTypeStr)
+
+    participantIDStr = formData['participant_id'].value
+    applicationIDStr = formData['application_id'].value
+    conditionIDStr = formData['condition_id'].value
+    timeStr = str(time.time())
 
     # Enforce dummy delay
     if testType == 0:
@@ -80,9 +89,24 @@ else:
 
     # Get obj values for given param values
     objVals = testPerformance(paramVals, testType)
+    objValsStr = str(list(objVals))
     
     result = { "obj_vals": objVals }
     message = json.dumps(result)
+
+    from db_config import db_path
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+
+    createFunctionTableQuery = '''CREATE TABLE IF NOT EXISTS function (pid TEXT, aid TEXT, cid TEXT, params TEXT, objs TEXT, testtype TEXT, time TEXT)'''
+    c.execute(createFunctionTableQuery)
+    conn.commit()
+
+    query = ''' INSERT INTO function VALUES (?, ?, ?, ?, ?, ?, ?)'''
+    c.execute(query, (participantIDStr, applicationIDStr, conditionIDStr, paramValsStrArray, objValsStr, testTypeStr, timeStr))
+    
+    conn.commit()
+    conn.close()
 
     # # Debug msg
     # debugMsg = "parameters: " + str(testType) + "\t [ " 

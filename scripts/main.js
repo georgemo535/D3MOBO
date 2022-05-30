@@ -1642,7 +1642,10 @@ function getTestResult(paramVals, testType) {
       type: "post",
       datatype:"json",                    
       data: { 'param_vals'        :paramValsJson,
-              'test_type'         :testType },                    
+              'test_type'         :testType,
+              'participant_id'    :String(participantID),
+              'application_id'    :String(applicationID),
+              'condition_id'      :String(conditionID) },                    
       success: function(result) {
         submitReturned = true;
         // console.log(result.message);
@@ -1790,6 +1793,7 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
   for (var i = 0; i < regionData.length; i++){
     var totalForbiddenRegion = regionData[i].lowerBound.concat(regionData[i].upperBound);
     totalForbiddenRegion.push(regionData[i].confidence);
+    totalForbiddenRegion.push(0);
     processedRegions.push(totalForbiddenRegion);
   }
 
@@ -1806,6 +1810,7 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
 
     var totalForbiddenRange = lowerBounds.concat(upperBounds);
     totalForbiddenRange.push(confidence);
+    totalForbiddenRange.push(1);
     processedRegions.push(totalForbiddenRange);
   }
 
@@ -1823,7 +1828,10 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
       datatype: "json",
       data: {   'design_params'   : designParamsJson,
                 'objectives'   : objectivesJson,
-                'forbidden_regions'    : forbidRegionsJson},
+                'forbidden_regions'    : forbidRegionsJson,
+                'participant_id'    :String(participantID),
+                'application_id'    :String(applicationID),
+                'condition_id'      :String(conditionID) },
       success: function(result) {
         submitReturned = true;
 
