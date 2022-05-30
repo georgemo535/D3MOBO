@@ -275,7 +275,7 @@
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
                     var p2 = (val - min) / (max - min);
-                    setPersonalizationRate(p2);
+                    setNotificationRate(p2);
                 })
 
                 $("#param3slider", window.parent.document).on('input', function () {
@@ -283,7 +283,7 @@
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
                     var p3 = (val - min) / (max - min);
-                    setRefreshRate(p3);
+                    setPersonalizationRate(p3);
                 })
 
                 $("#param4slider", window.parent.document).on('input', function () {
@@ -299,7 +299,7 @@
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
                     var p5 = (val - min) / (max - min);
-                    setNotificationRate(p5);
+                    setRefreshRate(p5);
                 })
 
                 // Initialize

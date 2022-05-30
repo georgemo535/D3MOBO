@@ -76,27 +76,82 @@ async function renderMoboInterface() {
   drawPcp();
   drawScatter();
 
-  renderRegionPlot = drawRegionPlot();
-  renderRegionList();
+  if (conditionID == ConditionType.HYBRID){
+    renderRegionPlot = drawRegionPlot();
+    renderRegionList();
 
-  document.getElementById('confidence-slider').value = 0.5;
-  document.getElementById('confidence-slider').disabled = true;
-  document.getElementById('confidence-slider-value').value = "";
+    document.getElementById('confidence-slider').value = 0.5;
+    document.getElementById('confidence-slider').disabled = true;
+    document.getElementById('confidence-slider-value').value = "";
 
-  document.getElementById('button-add-forbidden').addEventListener("click", addNewForbiddenRegion);
-  document.getElementById('button-delete-forbidden').disabled = true;
-  document.getElementById('button-delete-forbidden').addEventListener("click", deleteForbiddenRegion);
+    document.getElementById('button-add-forbidden').addEventListener("click", addNewForbiddenRegion);
+    document.getElementById('button-delete-forbidden').disabled = true;
+    document.getElementById('button-delete-forbidden').addEventListener("click", deleteForbiddenRegion);
 
-  parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
-  parent.task.document.getElementById('test-button').addEventListener("click", runPilotTest);
+    parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+    parent.task.document.getElementById('test-button').addEventListener("click", runPilotTest);
 
-  document.getElementById('button-mobo').addEventListener("click", runMOBO);
+    document.getElementById('button-mobo').addEventListener("click", runMOBO);
 
-  let coverageBar = progbar(document.getElementById("progress-coverage"));
-  coverageBar.set(0);
+    let coverageBar = progbar(document.getElementById("progress-coverage"));
+    coverageBar.set(0);
 
-  let moboBar = progbar(document.getElementById("use-of-mobo"));
-  moboBar.set(0);
+    let moboBar = progbar(document.getElementById("use-of-mobo"));
+    moboBar.set(0);
+  }
+
+  if (conditionID == ConditionType.DESIGNER){
+    document.getElementById('confidence-slider').style.display = 'none';
+    document.getElementById('confidence-value-heading').style.display = 'none';
+    document.getElementById('confidence-slider-value').style.display = 'none';
+
+    document.getElementById('forbidden-region-heading').style.display = 'none';
+    document.getElementById('forbidden-range-heading').style.display = 'none';
+
+    document.getElementById('button-add-forbidden').style.display = 'none';
+    document.getElementById('button-delete-forbidden').style.display = 'none';
+    document.getElementById('clear-selection-button').style.display = 'none';
+
+    document.getElementById('button-mobo').style.display = 'none';
+
+    document.getElementById('coverage-percent-heading').style.display = 'none';
+    document.getElementById('progress-coverage').style.display = 'none';
+
+    document.getElementById('use-of-mobo-percent-heading').style.display = 'none';
+    document.getElementById('use-of-mobo').style.display = 'none';
+
+    parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+    parent.task.document.getElementById('test-button').addEventListener("click", runPilotTest);
+  }
+
+  if (conditionID == ConditionType.MOBO){
+    document.getElementById('confidence-slider').style.display = 'none';
+    document.getElementById('confidence-value-heading').style.display = 'none';
+    document.getElementById('confidence-slider-value').style.display = 'none';
+
+    document.getElementById('forbidden-region-heading').style.display = 'none';
+    document.getElementById('forbidden-range-heading').style.display = 'none';
+
+    document.getElementById('button-add-forbidden').style.display = 'none';
+    document.getElementById('button-delete-forbidden').style.display = 'none';
+    document.getElementById('clear-selection-button').style.display = 'none';
+
+    document.getElementById('coverage-percent-heading').style.display = 'none';
+    document.getElementById('progress-coverage').style.display = 'none';
+
+    document.getElementById('use-of-mobo-percent-heading').style.display = 'none';
+    document.getElementById('use-of-mobo').style.display = 'none';
+
+    parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+    document.getElementById('button-mobo').addEventListener("click", runMOBO);
+
+    parent.task.document.getElementById('test-button').style.display = 'none';
+
+    for (var i = 0; i < numParams; i++){
+      // console.log(parameterValues[i]);
+      parent.task.document.getElementById('param' + (i+1) + 'slider').disabled = true;
+    }
+  }
 }
 
 function readTextFile(file, callback) {
