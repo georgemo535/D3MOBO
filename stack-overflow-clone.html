@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v6.js"></script>
+</head>
+<body>
+    <div style="text-align: center;">
+        <svg id="stack-overflow-interface"></svg>
+    </div>
+    <script>
+        var width = 420,
+    height = 475;
+
+    var svg = d3.select("#stack-overflow-interface")
+        .attr("width", width)
+        .attr("height", height);
+
+    var gTitle = svg.append("g")
+                 .attr("transform","translate(" + 0 + "," + 25 + ")");
+
+    var img = gTitle.append("svg:image")
+        .attr("xlink:href", "./images/heap/programming-coding.svg")
+        .attr("width", 50)
+        .attr("height", 50)
+        .attr("x", 40)
+        .attr("y",5);
+
+        gTitle.append("text")
+            .attr("x", 100)
+            .attr("y", 45)
+            .attr("style","font-size: 25pt; font-family: cursive;")
+            .text("Heap Underflow");
+
+    var gCategories = svg.append("g")
+        .attr("id","g-categories");
+
+    function addCategory(column) {
+
+        var gCategory = gCategories.append("g")    
+            .attr("class","g-category")
+            .attr("transform", "translate(" + (column * 40)  + ", " + 100 + ")");
+
+        gCategory.append("rect")
+            .attr("rx", 6)
+            .attr("ry", 6)
+            .attr("width", 30)
+            .attr("height", 30)
+            .attr("stroke","black")
+            .attr("fill",d3.rgb(200, 200, 200));
+
+        gCategory.append("svg:image")
+            .attr("xlink:href", "./images/heap/category-tag.svg")
+            .attr("width", 20)
+            .attr("height", 20)
+            .attr("x", 5)
+            .attr("y", 5);
+    }
+
+
+    var gQuestions = svg.append("g")    
+        .attr("id","g-questions")
+        .attr("transform","translate(" + 10 + ","  + 90 + ")");
+
+    function addQuestion(id) {
+
+        var gQuestion = gQuestions.append("g")    
+            .attr("class","g-question")
+            .attr("transform", "translate(" + 0 + ", " + (50) + ")");
+
+        gQuestion.append("rect")
+            .attr("rx", 6)
+            .attr("ry", 6)
+            .attr("width", 400)
+            .attr("height", 100)
+            .attr("stroke","black")
+            .attr("fill","white");
+
+        gQuestion.append("svg:image")
+            .attr("xlink:href", "./images/heap/user_icon.svg")
+            .attr("width", 50)
+            .attr("height", 50)
+            .attr("x", 10)
+            .attr("y", 10);
+
+        gQuestion.append("text")            
+            .attr("transform", "translate(100,10)")
+            .attr("dy", "1em")
+            .text("Question: Why this doesn't work?")
+            .call(wrap,350);
+
+        gTags = gQuestion.append("g")
+            .attr("class","g-tags")
+            .attr("transform", "translate(360,70)");
+
+        gTags.append("svg:image")
+            .attr("xlink:href", "./images/heap/tag.svg")
+            .attr("width", 30)
+            .attr("height", 30);
+    }
+
+    addQuestion();
+
+    var gAnswer = svg.append("g")    
+        .attr("id","g-answer")
+        .attr("transform","translate(" + 10 + ","  + 90 + ")");
+
+    function addResponse(){
+        var gResponse = gAnswer.append("g")    
+            .attr("class","g-response")
+            .attr("transform", "translate(" + 0 + ", " + (160) + ")");
+
+        gResponse.append("rect")
+            .attr("rx", 6)
+            .attr("ry", 6)
+            .attr("width", 400)
+            .attr("height", 200)
+            .attr("stroke","black")
+            .attr("fill","white");
+
+        gResponse.append("svg:image")
+            .attr("xlink:href", "./images/heap/user_icon.svg")
+            .attr("width", 50)
+            .attr("height", 50)
+            .attr("x", 10)
+            .attr("y", 10);
+        
+        gResponse.append("text")
+            .attr("transform", "translate(100, 10)")
+            .attr("dy", "1em")
+            .text("Answer: ")
+            .call(wrap,300);
+
+        gResponse.append("text")            
+            .attr("transform", "translate(100,50)")
+            .attr("dy", "1em")
+            .text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")
+            .call(wrap,300);
+
+        gStars = gResponse.append("g")
+            .attr("class","g-stars")
+            .attr("transform", "translate(10,60)");
+
+        gStars.append("svg:image")
+            .attr("xlink:href", "./images/heap/star.svg")
+            .attr("width", 20)
+            .attr("height", 20);
+    }
+
+    addResponse();
+
+    var refreshImg = svg.append("svg:image")
+        .attr("xlink:href", "./images/chicken/loading_circle_icon.svg")
+        .attr("width", 60)
+        .attr("height", 60)
+        .attr("x", 350)
+        .attr("y", 20);
+
+    
+    //
+    // Design callbacks
+    //
+
+    function setCategories(rate){
+        gCategories.selectAll("*").remove();
+
+        var nMinCategories = 1;
+        var nCategoryRate = 9;
+        var nCategories = Math.round(nCategoryRate * rate) + nMinCategories;
+
+        for (var i = 0; i < nCategories; i++){
+            addCategory(i);
+        }
+    }
+
+    // Rate assumed to be [0,1]
+    function setMaxTags(rate) {
+        // Clear all existing
+        d3.selectAll(".g-tags")
+            .each(function(d) {
+                d3.select(this).selectAll("*").remove();
+            });
+        
+        var nMinTags = 1;
+        var nTagRate = 9;
+        var nIcons = Math.round(nTagRate * rate) + nMinTags;
+
+        d3.selectAll(".g-tags")
+            .each(function(d) {                
+                for (var i = 0; i < nIcons; i++) {
+                    d3.select(this)
+                        .append("svg:image")
+                        .attr("xlink:href", "./images/heap/tag.svg")
+                        .attr("width", 30)
+                        .attr("height", 30)
+                        .attr("x", -(i * 35));
+                }
+            });
+    };
+
+    // Rate assumed to be [0,1]
+    function setRatingRate(rate) {
+        // Clear all existing
+        d3.selectAll(".g-stars")
+            .each(function(d) {
+                d3.select(this).selectAll("*").remove();
+            });
+        
+
+        var nMaxIcons = 5;
+        var nIcons = Math.round(nMaxIcons * rate);
+
+        d3.selectAll(".g-stars")
+            .each(function(d) {                
+                for (var i = 0; i < nIcons; i++) {
+                    d3.select(this)
+                        .append("svg:image")
+                        .attr("xlink:href", "./images/heap/star.svg")
+                        .attr("width", 15)
+                        .attr("height", 15)
+                        .attr("x", (i * 10));
+                }
+            });
+    };
+
+    function setQuestionPreviewRate(rate){
+        d3.selectAll(".g-preview")
+            .each(function(d) {
+                d3.select(this).selectAll("*").remove();
+            });
+        
+        var sentence = "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.";
+        var lengthSentence = sentence.length;
+        var rateLength = rate * lengthSentence;
+        var newSentence = sentence.slice(0, rateLength);
+
+        d3.selectAll(".g-question")
+            .each(function(d) {            
+                d3.select(this)
+                    .append("text")
+                    .attr("transform", "translate(100, 30)")
+                    .attr("dy", "1em")
+                    .attr("style","font-size: 10pt; font-family: cursive;")
+                    .attr("class", "g-preview")
+                    .text(newSentence)
+                    .call(wrap,300);
+            });
+    }
+
+    // Rate assumed to be [0,1]
+    function setRefreshRate(rate) {
+        refreshRate = 1 + (2 * rate);
+    };
+    
+    // Refresh image spinning
+    var i = 0;
+    var timeInterval = 10;
+    var refreshRate = 10;
+    setInterval(function(){
+        i += refreshRate;
+        update(i % 360) 
+    },timeInterval);
+
+    const centre = refreshImg.node().getBBox();
+    var n;
+    // update the element
+        function update(n) {    
+        refreshImg.attr("transform", "rotate(" + n + ", " + (centre.x + centre.width / 2) + ", " + (centre.y + centre.height / 2) + ")");
+    }
+
+    // Text wrapping for text
+    function wrap(text, width) {
+        text.each(function() {
+            var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            y = text.attr("y"),
+            dy = parseFloat(text.attr("dy")),
+            tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+            while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", lineHeight + "em").text(word);
+            }
+            }
+        });        
+    }
+
+    </script>
+    <script>
+        $( window ).on('load', function() {
+            setTimeout(function() 
+            {   
+                $("#param1slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p1 = (val - min) / (max - min);
+                    setCategories(p1);
+                })
+
+                $("#param2slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p2 = (val - min) / (max - min);
+                    setRefreshRate(p2);
+                })
+
+                $("#param3slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p3 = (val - min) / (max - min);
+                    setQuestionPreviewRate(p3);
+                })
+
+                $("#param4slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p4 = (val - min) / (max - min);
+                    setMaxTags(p4);
+                })
+
+                $("#param5slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p5 = (val - min) / (max - min);
+                    setRatingRate(p5);
+                })
+
+                // Initialize
+                var p1El = $("#param1slider", window.parent.document);
+                var p2El = $("#param2slider", window.parent.document);
+                var p3El = $("#param3slider", window.parent.document);
+                var p4El = $("#param4slider", window.parent.document);
+                var p5El = $("#param5slider", window.parent.document);
+
+                setCategories(normalizedSliderVal(p1El));
+                setRefreshRate(normalizedSliderVal(p2El));
+                setQuestionPreviewRate(normalizedSliderVal(p3El));
+                setMaxTags(normalizedSliderVal(p4El));
+                setRatingRate(normalizedSliderVal(p5El));
+
+            }, 200);
+        });
+
+        function normalizedSliderVal(el) {
+            var val = $(el).val();
+            var max = $(el).prop('max');
+            var min = $(el).prop('min');
+            return (val - min) / (max - min);
+        }
+    </script>
+</body>
+</html>

@@ -22,7 +22,7 @@
                  .attr("transform","translate(" + 0 + "," + 25 + ")");
 
     var img = gTitle.append("svg:image")
-        .attr("xlink:href", "./images/chicken_logo.svg")
+        .attr("xlink:href", "./images/chicken/chicken_logo.svg")
         .attr("width", 50)
         .attr("height", 50)
         .attr("x", 40)
@@ -58,7 +58,7 @@
             .attr("fill","white");
 
         gTweet.append("svg:image")
-            .attr("xlink:href", "./images/user_icon.svg")
+            .attr("xlink:href", "./images/chicken/user_icon.svg")
             .attr("width", 30)
             .attr("height", 30)
             .attr("x", 5)
@@ -66,7 +66,7 @@
 
         gTweet.append("svg:image")
             .attr("class","moderation-icon")
-            .attr("xlink:href", "./images/magnifying_glass_icon.svg")
+            .attr("xlink:href", "./images/chicken/magnifying_glass_icon.svg")
             .attr("width", 30)
             .attr("height", 30)
             .attr("x", 10)
@@ -83,7 +83,7 @@
             .attr("transform", "translate(370,70)");
 
         gLikes.append("svg:image")
-            .attr("xlink:href", "./images/thumbs_up_icon.svg")
+            .attr("xlink:href", "./images/chicken/thumbs_up_icon.svg")
             .attr("width", 30)
             .attr("height", 30);
     }
@@ -111,7 +111,7 @@
             .attr("fill",d3.rgb(200, 200, 200));
 
         gAd.append("svg:image")
-            .attr("xlink:href", "./images/ad_icon.svg")
+            .attr("xlink:href", "./images/chicken/ad_icon.svg")
             .attr("width", 20)
             .attr("height", 20)
             .attr("x", 5)
@@ -127,7 +127,7 @@
     addAdvertisement(1,0);
 
     var refreshImg = svg.append("svg:image")
-        .attr("xlink:href", "./images/loading_circle_icon.svg")
+        .attr("xlink:href", "./images/chicken/loading_circle_icon.svg")
         .attr("width", 60)
         .attr("height", 60)
         .attr("x", 350)
@@ -168,7 +168,7 @@
                 for (var i = 0; i < nIcons; i++) {
                     d3.select(this)
                         .append("svg:image")
-                        .attr("xlink:href", "./images/thumbs_up_icon.svg")
+                        .attr("xlink:href", "./images/chicken/thumbs_up_icon.svg")
                         .attr("width", 30)
                         .attr("height", 30)
                         .attr("x", -(i * 12.5));
@@ -207,7 +207,7 @@
 
         for (var i = 0; i < nIcons; i++) {
             var img = gNotifications.append("svg:image")
-            .attr("xlink:href", "./images/notification_icon.svg")
+            .attr("xlink:href", "./images/chicken/notification_icon.svg")
             .attr("width", 20)
             .attr("height", 20)
             .attr("x", 5 + (i * 20))

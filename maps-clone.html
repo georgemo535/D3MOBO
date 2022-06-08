@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v6.js"></script>
+</head>
+<body>
+    <div style="text-align: center;">
+        <svg id="maps-clone-interface"></svg>
+    </div>
+    <style>
+        .location-text {
+            paint-order: stroke;
+            stroke: white;
+            stroke-width: 1px;
+            stroke-linecap: butt;
+            stroke-linejoin: miter;
+        }
+    </style>
+    <script>
+    var width = 420,
+    height = 475;
+
+    var centerX = 200;
+    var centerY = 200;
+
+    var svg = d3.select("#maps-clone-interface")
+        .attr("width", width)
+        .attr("height", height);
+
+    var gTitle = svg.append("g")
+                 .attr("transform","translate(" + 0 + "," + 25 + ")");
+
+    var img = gTitle.append("svg:image")
+        .attr("xlink:href", "./images/maps/restaurant.svg")
+        .attr("width", 50)
+        .attr("height", 50)
+        .attr("x", 40)
+        .attr("y",5);
+
+    gTitle.append("text")
+        .attr("x", 100)
+        .attr("y", 45)
+        .attr("style","font-size: 30pt; font-family: cursive;")
+        .text("Yum Yum");
+
+    var gMap = svg.append("g")
+        .attr("id","g-map")
+        .attr("transform", "translate(" + 0 + "," + 100 + ")");
+
+    gMap.append("rect")
+        .attr("rx", 6)
+        .attr("ry", 6)
+        .attr("width", 400)
+        .attr("height", 350)
+        .attr("stroke","black")
+        .attr("fill","white");
+    
+    gMap.append("svg:image")
+        .attr("xlink:href", "./images/maps/map.svg")
+        .attr("width", 400)
+        .attr("height", 350)
+        .attr("x", 0)
+        .attr("y", 0);
+    
+    gMap.append("svg:image")
+        .attr("xlink:href", "./images/maps/compass.svg")
+        .attr("width", 50)
+        .attr("height", 50)
+        .attr("x", 350)
+        .attr("y", 300)
+    
+    var mapIcon = gMap.append("svg:image")
+        .attr("xlink:href", "./images/maps/map-icon.svg")
+        .attr("class", "location-icon")
+        .attr("id", "location-icon")
+        .attr("width", 50)
+        .attr("height", 50)
+        .attr("x", 175)
+        .attr("y", 150)
+        .style("opacity", 0);   
+
+    gMap.append('circle')
+        .attr("class", "radius-show")
+        .attr("id", "radius-show")
+        .attr('cx', 200)
+        .attr('cy', 200)
+        .attr('r', 50)
+        .style('fill', 'grey')
+        .style("opacity", 0);   
+    
+    gMap.append("text")
+        .attr("class", "location-text")
+        .attr("id", "restaurant-name")
+        .attr("transform", "translate(200,200)")
+        .attr("dy", "1em")
+        .attr("font-family", "sans-serif")
+        .style("font-size", "10px")
+        .style("fill", "#f54275")
+        .style("opacity", 0)
+        .attr("vector-effect", "non-scaling-stroke")
+        .text("BBQ Restaurant")
+        .call(wrap,350);
+    
+    var informationX = 225;
+    var informationY = 150;
+    
+    var informationIcon = gMap.append("g")
+        .attr("id","information")
+        .attr("transform","translate(" + informationX + "," + informationY + ")");
+
+    informationIcon.append("rect")
+        .attr("id", "information-icon")
+        .attr("rx", 6)
+        .attr("ry", 6)
+        .attr("width", 55)
+        .attr("height", 35)
+        .attr("stroke","black")
+        .attr("fill","white")
+        .style("opacity", 0);
+        
+    informationIcon.append("text")
+        .attr("id", "information-text")            
+        .attr("transform", "translate(5, 5)")
+        .attr("dy", "1em")
+        .text("Lorem ipsum dolor sit amet...")
+        .style("font-size", "8px")
+        .style("opacity", 0)
+        .call(wrap, 50);
+
+    
+    //
+    // Design callbacks
+    //
+
+    // Rate assumed to be [0,1]
+    function setIconTransparency(rate) {
+        var minOpacity = 0.6;
+        var maxOpacity = 1.0;
+
+        var opacityValue = minOpacity + rate * (maxOpacity - minOpacity);
+
+        d3.select("#location-icon").style("opacity", opacityValue);
+    };
+
+    // Rate assumed to be [0,1]
+    function setDistanceIcon(rate){
+        var minDistance = 10;
+        var maxDistance = 150;
+
+        var distance = minDistance + rate * (maxDistance - minDistance);
+
+        d3.select("#radius-show")
+            .attr('r', distance)
+            .style("opacity", 0.1);
+    }
+
+    // Rate assumed to be [0,1]
+    function setIconSize(rate) {
+        var minSize = 10;
+        var maxSize = 80;
+
+        var iconSize = minSize + rate * (maxSize - minSize);
+
+        var iconX = centerX - iconSize / 2;
+        var iconY = centerY - iconSize;
+
+        d3.select("#location-icon")
+            .attr("width", iconSize)
+            .attr("height", iconSize)
+            .attr("x", iconX)
+            .attr("y", iconY)
+    };
+
+    function setTextSize(rate){
+        var minTextFont = 8;
+        var maxTextFont = 25;
+        var spaceText = 10;
+
+        var textSize = minTextFont + rate * (maxTextFont - minTextFont);
+
+        d3.select("#restaurant-name")
+            .style("font-size", textSize)
+            .style("opacity", 1);
+
+        var boxX = centerX;
+        var boxY = centerY + textSize + spaceText;
+
+        d3.select("#information")
+        .attr("transform","translate(" + boxX + "," + boxY + ")");
+    }
+
+    function setInformationSize(rate){
+        var minWidthInfo = 55;
+        var maxWidthInfo = 150;
+        var ratioHW = 2/3;
+        var textSpace = 5;
+
+        var newWidth = minWidthInfo + rate * (maxWidthInfo - minWidthInfo);
+        var newHeight = newWidth * ratioHW;
+
+        d3.select("#information-icon")
+            .attr("width", newWidth)
+            .attr("height", newHeight)
+            .style("opacity", 1);
+        
+        d3.select("#information-text")
+            .text("Lorem ipsum dolor sit amet...")
+            .style("font-size", "8px")
+            .style("opacity", 1)
+            .call(wrap, newWidth - textSpace);
+    }
+
+    // Text wrapping for tweet
+    function wrap(text, width) {
+        text.each(function() {
+            var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            y = text.attr("y"),
+            dy = parseFloat(text.attr("dy")),
+            tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+            while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", lineHeight + "em").text(word);
+            }
+            }
+        });        
+    }
+
+    </script>
+    <script>
+        $( window ).on('load', function() {
+            setTimeout(function() 
+            {   
+                $("#param1slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p1 = (val - min) / (max - min);
+                    setIconTransparency(p1);
+                })
+
+                $("#param2slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p2 = (val - min) / (max - min);
+                    setDistanceIcon(p2);
+                })
+
+                $("#param3slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p3 = (val - min) / (max - min);
+                    setIconSize(p3);
+                })
+
+                $("#param4slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p4 = (val - min) / (max - min);
+                    setInformationSize(p4);
+                })
+
+                $("#param5slider", window.parent.document).on('input', function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p5 = (val - min) / (max - min);
+                    setTextSize(p5);
+                })
+
+                // Initialize
+                var p1El = $("#param1slider", window.parent.document);
+                var p2El = $("#param2slider", window.parent.document);
+                var p3El = $("#param3slider", window.parent.document);
+                var p4El = $("#param4slider", window.parent.document);
+                var p5El = $("#param5slider", window.parent.document);
+
+                setIconTransparency(normalizedSliderVal(p1El));
+                setDistanceIcon(normalizedSliderVal(p2El));
+                setIconSize(normalizedSliderVal(p3El));
+                setInformationSize(normalizedSliderVal(p4El));
+                setTextSize(normalizedSliderVal(p5El));
+
+            }, 200);
+        });
+
+        function normalizedSliderVal(el) {
+            var val = $(el).val();
+            var max = $(el).prop('max');
+            var min = $(el).prop('min');
+            return (val - min) / (max - min);
+        }
+    </script>
+</body>
+</html>

@@ -28,24 +28,24 @@ const ConditionType = {
 }
 
 const ApplicationType = {
-  0: "Twitter",
-  1: "Amazon",
-  2: "Google"
+  TWITTER: 0,
+  STACKOVERFLOW: 1,
+  GOOGLEMAPS: 2
 }
 
 const ApplicationParams = {
-  0: {parameters: ["Ads", "Notification", "Personalization", "Moderation", "Refreshing"],
+  0: {parameters: ["Ads", "Notification", "Personalization", "Moderation", "Refresh"],
             xbounds: [[0, 1], [0, 2], [0, 1], [0, 1], [0, 20]],
             objectives: ["Revenue", "User Rating"],
             ybounds: [[0, 20], [0, 5]]},
-  1: {parameters: ["x1", "x2", "x3", "x4", "x5"],
-            xbounds: [[0, 1], [0, 1], [0, 1], [0, 1], [0, 1]],
-            objectives: ["obj1", "obj2"],
-            ybounds: [[-1, 1], [-1, 1]]},
-  2: {parameters: ["x1", "x2", "x3", "x4", "x5"],
-            xbounds: [[0, 1], [0, 1], [0, 1], [0, 1], [0, 1]],
-            objectives: ["obj1", "obj2"],
-            ybounds: [[-1, 1], [-1, 1]]}
+  1: {parameters: ["Categories", "Refresh", "Preview", "Tags", "Activity Rating"],
+            xbounds: [[1, 50], [0, 1000], [0, 500], [1, 10], [0, 5]],
+            objectives: ["Answering Time", "Percentage Answered"],
+            ybounds: [[0, 2], [0, 100]]},
+  2: {parameters: ["Transparency", "Distance", "Icon Size", "Box Size", "Text Size"],
+            xbounds: [[0.5, 1], [5, 50], [1, 10], [10, 50], [10, 30]],
+            objectives: ["Time", "Accuracy"],
+            ybounds: [[0, 100], [0, 100]]}
 }
 
 async function renderMoboInterface() {
@@ -60,6 +60,8 @@ async function renderMoboInterface() {
   objectiveNames = ApplicationParams[applicationID].objectives;
   parameterBounds = ApplicationParams[applicationID].xbounds;
   objectiveBounds = ApplicationParams[applicationID].ybounds;
+
+  console.log(parameterNames);
 
   var midPoints = [];
   for (var i = 0; i < numParams; i++){
@@ -151,6 +153,17 @@ async function renderMoboInterface() {
       // console.log(parameterValues[i]);
       parent.task.document.getElementById('param' + (i+1) + 'slider').disabled = true;
     }
+  }
+
+  // Application Type
+  if (applicationID == ApplicationType.TWITTER){
+    parent.task.document.getElementById('task-window').innerHTML = "<iframe src='twitter-clone.html' class='design-window' name='design'></iframe>";
+  }
+  if (applicationID == ApplicationType.STACKOVERFLOW){
+    parent.task.document.getElementById('task-window').innerHTML = "<iframe src='stack-overflow-clone.html' class='design-window' name='design'></iframe>";
+  }
+  if (applicationID == ApplicationType.GOOGLEMAPS){
+    parent.task.document.getElementById('task-window').innerHTML = "<iframe src='maps-clone.html' class='design-window' name='design'></iframe>";
   }
 }
 
