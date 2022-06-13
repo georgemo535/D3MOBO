@@ -24,11 +24,20 @@ testWaitTime = 5 #s
 pilotWaitTime = 1 #s
 
 # Function configs
-weights = np.array([[0.5, 0.6, 0.4, 0.7, 0.1], 
-                    [1.0, 0.4, 0.8, 0.9, 1.2]])
-centers = np.array([[-0.2, 0.6, 0.7, 0.3, 0.7],
-                    [0.2, 0.4, 0.2, 1.2, 0.9]])
-biases = np.array([0.8, 0.7])
+# weights = np.array([[0.5, 0.6, 0.4, 0.7, 0.1], 
+#                     [1.0, 0.4, 0.8, 0.9, 1.2]])
+# centers = np.array([[-0.2, 0.6, 0.7, 0.3, 0.7],
+#                     [0.2, 0.4, 0.2, 1.2, 0.9]])
+# biases = np.array([0.8, 0.7])
+weightsDict = {"twitter": np.array([[1.2, 0.6, 1.3, 0.5, 0.4], [1.3, 0.4, 0.8, 0.9, 0.4]]),
+            "stack-overflow": np.array([[1.2, 0.5, 0.6, 1.3, 0.4], [1.3, 0.9, 0.4, 0.8, 0.4]]),
+            "google-maps": np.array([[0.8, 1.0, 0.8, 0.4, 0.5], [1.5, 0.7, 1.2, 0.7, 0.3]])}
+centersDict = {"twitter": np.array([[0.62, 0.22, 1.25, 0.35, 0.22], [-0.1, 0.43, 0.80, 0.32, 0.2]]),
+                "stack-overflow": np.array([[0.62, 0.35, 0.22, 1.25, 0.22], [-0.1, 0.32, 0.2, 0.8, 0.43]]),
+                "google-maps": np.array([[0.8, 1.1, 0.57, 0.2, 0.8], [1.25, 0.65, 0.78, -0.25, 0.78]])}
+biasesDict = {"twitter": np.array([0.8, 0.7]),
+                "stack-overflow": np.array([0.8, 0.7]),
+                "google-maps": np.array([0.7, 0.8])}
 
 # Define function for checking that required parameters have been submitted
 def checkFormData(data, expectedArgs):
@@ -49,13 +58,20 @@ def arrayToCsv(values):
         csv_string += str(values[i])
     return csv_string
 
-def testPerformance(paramValues, testType):
+def testPerformance(paramValues, testType, applicationID):
+    if applicationID == 0:
+        application = "twitter"
+    elif applicationID == 1:
+        application = "stack-overflow"
+    elif applicationID == 2:
+        application = "google-maps"
+
     # Testing mode
     if testType == 1:
-        values = pilot_test_function(paramValues, weights, centers, biases)
+        values = pilot_test_function(paramValues, weightsDict[application], centersDict[application], biasesDict[application])
     # Evaluation Mode
     elif testType == 0:
-        values = formal_evaluation_function(paramValues, weights, centers, biases)
+        values = formal_evaluation_function(paramValues, weightsDict[application], centersDict[application], biasesDict[application])
     return values.tolist()[0]
 
 # Check that form values have been defined
@@ -88,7 +104,7 @@ else:
         time.sleep(pilotWaitTime)
 
     # Get obj values for given param values
-    objVals = testPerformance(paramVals, testType)
+    objVals = testPerformance(paramVals, testType, int(applicationIDStr))
     objValsStr = str(list(objVals))
     
     result = { "obj_vals": objVals }

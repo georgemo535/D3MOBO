@@ -177,3 +177,9 @@ width: 300px;
     background: #ced6ff;
     transition: width 0.5s;
 }
+
+label {
+    display: inline-block;
+    width: 150px;
+    text-align: right;
+  }
