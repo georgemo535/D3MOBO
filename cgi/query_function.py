@@ -29,15 +29,15 @@ pilotWaitTime = 1 #s
 # centers = np.array([[-0.2, 0.6, 0.7, 0.3, 0.7],
 #                     [0.2, 0.4, 0.2, 1.2, 0.9]])
 # biases = np.array([0.8, 0.7])
-weightsDict = {"twitter": np.array([[1.2, 0.6, 1.3, 0.5, 0.4], [1.3, 0.4, 0.8, 0.9, 0.4]]),
-            "stack-overflow": np.array([[1.2, 0.5, 0.6, 1.3, 0.4], [1.3, 0.9, 0.4, 0.8, 0.4]]),
-            "google-maps": np.array([[0.8, 1.0, 0.8, 0.4, 0.5], [1.5, 0.7, 1.2, 0.7, 0.3]])}
-centersDict = {"twitter": np.array([[0.62, 0.22, 1.25, 0.35, 0.22], [-0.1, 0.43, 0.80, 0.32, 0.2]]),
-                "stack-overflow": np.array([[0.62, 0.35, 0.22, 1.25, 0.22], [-0.1, 0.32, 0.2, 0.8, 0.43]]),
-                "google-maps": np.array([[0.8, 1.1, 0.57, 0.2, 0.8], [1.25, 0.65, 0.78, -0.25, 0.78]])}
-biasesDict = {"twitter": np.array([0.8, 0.7]),
-                "stack-overflow": np.array([0.8, 0.7]),
-                "google-maps": np.array([0.7, 0.8])}
+weightsDict = {"twitter": np.array([[0.9, 0.4, 1.3, 0.7, 0.4], [1.0, 0.6, 1.2, 0.5, 0.4]]),
+            "stack-overflow": np.array([[1.2, 0.5, 0.4, 1.0, 0.6], [1.3, 0.7, 0.4, 0.9, 0.4]]),
+            "google-maps": np.array([[1.2, 0.5, 0.6, 1.0, 0.4], [1.3, 0.7, 0.4, 0.9, 0.4]])}
+centersDict = {"twitter": np.array([[0.9, 0.3, 0.8, 0.25, 0.25], [0.3, 0.35, 1.1, 0.75, 0.3]]),
+                "stack-overflow": np.array([[-0.1, 0.25, 0.7, 0.7, 0.8], [0.2, 0.75, 0.65, 0.1, 0.7]]),
+                "google-maps": np.array([[1.1, 0.75, 0.2, 0.3, 0.3], [0.8, 0.25, 0.3, 0.9, 0.35]])}
+biasesDict = {"twitter": np.array([0.7, 0.8]),
+                "stack-overflow": np.array([0.7, 0.8]),
+                "google-maps": np.array([0.8, 0.7])}
 
 # Define function for checking that required parameters have been submitted
 def checkFormData(data, expectedArgs):

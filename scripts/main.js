@@ -20,6 +20,7 @@ var applicationID;
 var designLineData;
 
 var moboUsed = false;
+var progressBarFinished = false;
 var numberMOBOUsed = 0;
 
 const ConditionType = {
@@ -40,7 +41,7 @@ const ApplicationParams = {
             objectives: ["Revenue", "User Rating"],
             ybounds: [[0, 20], [0, 5]]},
   1: {parameters: ["Categories", "Refresh", "Preview", "Tags", "Activity Rating"],
-            xbounds: [[1, 50], [0, 1000], [0, 500], [1, 10], [0, 5]],
+            xbounds: [[5, 50], [0, 1000], [0, 500], [1, 10], [0, 5]],
             objectives: ["Answering Time", "Percentage Answered"],
             ybounds: [[0, 2], [0, 100]]},
   2: {parameters: ["Transparency", "Distance", "Icon Size", "Box Size", "Text Size"],
@@ -66,7 +67,7 @@ async function renderMoboInterface() {
 
   var midPoints = [];
   for (var i = 0; i < numParams; i++){
-    midPoints.push((parameterBounds[i][0] + parameterBounds[i][1]) / 2);
+    midPoints.push((parameterBounds[i][0]));
   }
   var midPointsScaled = normalizeParameters(midPoints, parameterBounds);
   designLineData = [{id: "current", x1: midPointsScaled[0], x2: midPointsScaled[1], x3: midPointsScaled[2], x4: midPointsScaled[3], x5: midPointsScaled[4]}];
@@ -78,6 +79,8 @@ async function renderMoboInterface() {
   constructParameterSlider();
   drawPcp();
   drawScatter();
+
+  document.getElementById("finish-button").addEventListener("click", finishExperiment);
 
   if (conditionID == ConditionType.HYBRID){
     renderRegionPlot = drawRegionPlot();
@@ -91,8 +94,8 @@ async function renderMoboInterface() {
     document.getElementById('button-delete-forbidden').disabled = true;
     document.getElementById('button-delete-forbidden').addEventListener("click", deleteForbiddenRegion);
 
-    parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
-    parent.task.document.getElementById('test-button').addEventListener("click", runPilotTest);
+    document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+    document.getElementById('test-button').addEventListener("click", runPilotTest);
 
     document.getElementById('button-mobo').addEventListener("click", runMOBO);
 
@@ -123,8 +126,8 @@ async function renderMoboInterface() {
     document.getElementById('use-of-mobo-percent-heading').style.display = 'none';
     document.getElementById('use-of-mobo').style.display = 'none';
 
-    parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
-    parent.task.document.getElementById('test-button').addEventListener("click", runPilotTest);
+    document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+    document.getElementById('test-button').addEventListener("click", runPilotTest);
   }
 
   if (conditionID == ConditionType.MOBO){
@@ -145,14 +148,15 @@ async function renderMoboInterface() {
     document.getElementById('use-of-mobo-percent-heading').style.display = 'none';
     document.getElementById('use-of-mobo').style.display = 'none';
 
-    parent.task.document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+    document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
     document.getElementById('button-mobo').addEventListener("click", runMOBO);
 
-    parent.task.document.getElementById('test-button').style.display = 'none';
+    document.getElementById('test-button').style.display = 'none';
+    document.getElementById("evaluation-button").disabled = true;
 
     for (var i = 0; i < numParams; i++){
       // console.log(parameterValues[i]);
-      parent.task.document.getElementById('param' + (i+1) + 'slider').disabled = true;
+      document.getElementById('param' + (i+1) + 'slider').disabled = true;
     }
   }
 
@@ -196,19 +200,19 @@ function constructParameterSlider() {
   for (var i = 0; i < numParams; i++){
       var divStart = "<div>"
       var labelTxt = "<label for='param" + (i+1) + "slider'>" + parameterNames[i] + "</label>"
-      var inputTxt = "<input type='range' min=" + parameterBounds[i][0] + " max=" + parameterBounds[i][1] + " value='" + (parameterBounds[i][0] + parameterBounds[i][1]) / 2 + "' step='0.01' class='slider'"
+      var inputTxt = "<input type='range' min=" + parameterBounds[i][0] + " max=" + parameterBounds[i][1] + " value='" + parameterBounds[i][0] + "' step='0.01' class='slider'"
       + " id=" + "'param" + (i+1) + "slider'" + " name=" + "'param" + (i+1) + "'" + " oninput='this.nextElementSibling.value = this.value'>";
-      var outputTxt = "<output id='param"+ (i+1) + "output'>" + (parameterBounds[i][0] + parameterBounds[i][1]) / 2 + "</output>"
-      var breakTxt = "<br><br>"
+      var outputTxt = "<output id='param"+ (i+1) + "output'>" + " " + parameterBounds[i][0] + "</output>"
+      // var breakTxt = "<br><br>"
       var divEnd = "</div>"
       
       // console.log(inputTxt);
-      var paramSlidersDiv = parent.task.document.getElementById("param-sliders");
+      var paramSlidersDiv = document.getElementById("param-sliders");
       paramSlidersDiv.innerHTML += divStart;
       paramSlidersDiv.innerHTML += labelTxt;
       paramSlidersDiv.innerHTML += inputTxt;
       paramSlidersDiv.innerHTML += outputTxt;
-      paramSlidersDiv.innerHTML += breakTxt;
+      // paramSlidersDiv.innerHTML += breakTxt;
       paramSlidersDiv.innerHTML += divEnd;
 
       // parent.task.document.getElementById("param-sliders").appendChild(inputTxt)
@@ -217,7 +221,7 @@ function constructParameterSlider() {
   }
 
   for (var i = 0; i < numParams; i++){
-    parent.task.document.getElementById('param' + (i+1) + 'slider').addEventListener("input", drawGuidingLine);
+    document.getElementById('param' + (i+1) + 'slider').addEventListener("input", drawGuidingLine);
   }
 }
 
@@ -238,7 +242,7 @@ function unnormalizeParameters(parameters, bounds){
     var upperBound = Number(bounds[i][1]);
     var lowerBound = Number(bounds[i][0]);
     var unnormParam = lowerBound + Number(parameters[i]) * (upperBound - lowerBound);
-    unnormalizedParams.push(unnormParam);
+    unnormalizedParams.push(unnormParam.toFixed(2));
   }
   return unnormalizedParams;
 }
@@ -265,8 +269,8 @@ function unnormalizeObjectives(objectives, bounds){
   return unnormalizedObjs;
 }
 
-const svgWidth = 500;
-const svgHeight = 330;
+const svgWidth = 450;
+const svgHeight = 370;
 
 // set the dimensions and margins of the graph
 const margin = {top: 20, right: 50, bottom: 40, left: 50},
@@ -481,8 +485,8 @@ const onClickDesign = function(event, d){
   // console.log(parameterValues);
   for (var i = 0; i < numParams; i++){
     // console.log(parameterValues[i]);
-    parent.task.document.getElementById('param' + (i+1) + 'slider').value = unnormalizedParamVals[i];
-    parent.task.document.getElementById('param' + (i+1) + 'output').value = unnormalizedParamVals[i];
+    document.getElementById('param' + (i+1) + 'slider').value = unnormalizedParamVals[i];
+    document.getElementById('param' + (i+1) + 'output').value = unnormalizedParamVals[i];
   }
 
   drawGuidingLine();
@@ -496,7 +500,7 @@ function pathPcp(d) {
   var linePath = "M" + 0 + "," + (1- lineData[0]) * height;
 
   for (var i = 1; i < lineData.length; i++){
-    linePath += "L" + (i) * 100 + "," + (1 - lineData[i])*height;
+    linePath += "L" + (i) * (width / (numParams-1)) + "," + (1 - lineData[i])*height;
   }
   return linePath;
 }
@@ -592,10 +596,9 @@ const drawGuidingLine = function(event){
   
   var paramSliders = []
   for (var i = 0; i < numParams; i++){
-    var valueSlider = parent.task.document.getElementById('param' + (i+1) + 'slider').value;
+    var valueSlider = document.getElementById('param' + (i+1) + 'slider').value;
     paramSliders.push(valueSlider);
   }
-
   var paramNormSliders = normalizeParameters(paramSliders, parameterBounds);
 
   for (var i = 0; i < numParams; i++){
@@ -609,7 +612,7 @@ const drawGuidingLine = function(event){
   drawDesignLine();
 
   for (var i = 0; i < numParams; i++){
-    parent.task.document.getElementById('param' + (i+1) + 'output').innerHTML = parent.task.document.getElementById('param' + (i+1) + 'slider').value;
+    document.getElementById('param' + (i+1) + 'output').innerHTML = document.getElementById('param' + (i+1) + 'slider').value;
   }
 }
 
@@ -721,8 +724,8 @@ const onClickScatter = function(event, d){
   // console.log(parameterValues);
   for (var i = 0; i < numParams; i++){
     // console.log(parameterValues[i]);
-    parent.task.document.getElementById('param' + (i+1) + 'slider').value = unnormalizedParamVals[i];
-    parent.task.document.getElementById('param' + (i+1) + 'output').value = unnormalizedParamVals[i];
+    document.getElementById('param' + (i+1) + 'slider').value = unnormalizedParamVals[i];
+    document.getElementById('param' + (i+1) + 'output').value = unnormalizedParamVals[i];
   }
 
   drawGuidingLine();
@@ -808,7 +811,7 @@ function drawScatter() {
   // Function to draw the Pareto front
   var dominatingSet = getDominatingSet(evaluatedDesigns);
   var dominatingSetSortX = dominatingSet.sort(compareObjectivesFirst);
-  console.log(dominatingSetSortX);
+  // console.log(dominatingSetSortX);
 
   var paretoLineData = [];
   for (var i = 0; i < dominatingSetSortX.length - 1; i++){
@@ -819,7 +822,7 @@ function drawScatter() {
     paretoLineData.push(data);
   }
 
-  console.log(paretoLineData);
+  // console.log(paretoLineData);
 
   if (paretoLineData.length > 0){
     svgScatter
@@ -896,7 +899,7 @@ function compareObjectivesSecond(a, b){
 function getDominatingSet(evaluatedDesigns){
   var dominatingSet = [];
   var sortedObjectiveSecond = evaluatedDesigns.sort(compareObjectivesSecond).reverse();
-  console.log(sortedObjectiveSecond);
+  // console.log(sortedObjectiveSecond);
   var maxFirst = -1;
   
   for (var i = 0; i < sortedObjectiveSecond.length; i++){
@@ -966,13 +969,14 @@ function drawRegionPlot() {
     
   // The path function take a row of the csv as input, and return x and y coordinates of the area to draw for this raw.
   function pathRegion(d) {
+    console.log(d);
     var regionPath = "M ";
 
     for (var i = 0; i < d.lowerBound.length; i++){
-        regionPath += (i) * 100 + " " + (1 - d.lowerBound[i])*height + " L ";
+        regionPath += (i) * width / (numParams-1) + " " + (1 - d.lowerBound[i])*height + " L ";
     }
     for (var i = d.upperBound.length-1; i > 0; i--){
-        regionPath += (i) * 100 + " " + (1 - d.upperBound[i])*height + " L ";
+        regionPath += (i) * width / (numParams-1) + " " + (1 - d.upperBound[i])*height + " L ";
     }
     regionPath += 0 + " " + (1 - d.upperBound[0])*height;
     regionPath += " Z";
@@ -984,10 +988,10 @@ function drawRegionPlot() {
     var rangePath = "M ";
     var halfWidth = 5;
 
-    rangePath += ((d.dim - 1) * 100 - halfWidth) + " " + (1 - d.low)*height;
-    rangePath += " L " + ((d.dim - 1) * 100 + halfWidth) + " " + (1 - d.low)*height;
-    rangePath += "L" + ((d.dim - 1) * 100 + halfWidth) + " " + (1 - d.up)*height;
-    rangePath += "L" + ((d.dim - 1) * 100 - halfWidth) + " " + (1 - d.up)*height;
+    rangePath += ((d.dim - 1) * width / (numParams-1) - halfWidth) + " " + (1 - d.low)*height;
+    rangePath += " L " + ((d.dim - 1) * width / (numParams-1) + halfWidth) + " " + (1 - d.low)*height;
+    rangePath += "L" + ((d.dim - 1) * width / (numParams-1) + halfWidth) + " " + (1 - d.up)*height;
+    rangePath += "L" + ((d.dim - 1) * width / (numParams-1) - halfWidth) + " " + (1 - d.up)*height;
     rangePath += " Z";
 
     return rangePath;
@@ -1057,14 +1061,14 @@ function drawRegionPlot() {
       var dPt = [
           { "id": d.id, "value": "lower", "x": 0, "y": d.lowerBound[0] },
           { "id": d.id, "value": "upper", "x": 0, "y": d.upperBound[0] },
-          { "id": d.id, "value": "lower", "x": 100, "y": d.lowerBound[1] },
-          { "id": d.id, "value": "upper", "x": 100, "y": d.upperBound[1] },
-          { "id": d.id, "value": "lower", "x": 200, "y": d.lowerBound[2] },
-          { "id": d.id, "value": "upper", "x": 200, "y": d.upperBound[2] },
-          { "id": d.id, "value": "lower", "x": 300, "y": d.lowerBound[3] },
-          { "id": d.id, "value": "upper", "x": 300, "y": d.upperBound[3] },
-          { "id": d.id, "value": "lower", "x": 400, "y": d.lowerBound[4] },
-          { "id": d.id, "value": "upper", "x": 400, "y": d.upperBound[4] },
+          { "id": d.id, "value": "lower", "x": width * 1 / (numParams - 1), "y": d.lowerBound[1] },
+          { "id": d.id, "value": "upper", "x": width * 1 / (numParams - 1), "y": d.upperBound[1] },
+          { "id": d.id, "value": "lower", "x": width * 2 / (numParams - 1), "y": d.lowerBound[2] },
+          { "id": d.id, "value": "upper", "x": width * 2 / (numParams - 1), "y": d.upperBound[2] },
+          { "id": d.id, "value": "lower", "x": width * 3 / (numParams - 1), "y": d.lowerBound[3] },
+          { "id": d.id, "value": "upper", "x": width * 3 / (numParams - 1), "y": d.upperBound[3] },
+          { "id": d.id, "value": "lower", "x": width * 4 / (numParams - 1), "y": d.lowerBound[4] },
+          { "id": d.id, "value": "upper", "x": width * 4 / (numParams - 1), "y": d.upperBound[4] },
       ]
       return dPt;
       })
@@ -1121,7 +1125,7 @@ function drawRegionPlot() {
 
             for (var i = 0; i < regionData.length; i++){
               if (regionData[i].id == d.id){
-                regionData[i].upperBound[d.x/100] = Math.min(1, Math.max(yVal, lowerBoundConvert));
+                regionData[i].upperBound[d.x/(width / (numParams-1))] = Math.min(1, Math.max(yVal, lowerBoundConvert));
               }
             }
 
@@ -1134,7 +1138,7 @@ function drawRegionPlot() {
 
             for (var i = 0; i < regionData.length; i++){
               if (regionData[i].id == d.id){
-                regionData[i].lowerBound[d.x/100] = Math.max(0, Math.min(yVal, upperBoundConvert));
+                regionData[i].lowerBound[d.x/(width / (numParams-1))] = Math.max(0, Math.min(yVal, upperBoundConvert));
               }
             }
           }        
@@ -1154,7 +1158,7 @@ function drawRegionPlot() {
   for (var i = 0; i < numParams; i++) {
     var wButton = 20;
     var hButton = 20;
-    var xCenter = i*100;
+    var xCenter = i*(width / (numParams-1));
     var yCenter = height + 20;
 
     var addForbiddenRangeButton = svgRegions.append("g")
@@ -1186,7 +1190,6 @@ function drawRegionPlot() {
   }
 
   // Draw forbidden ranges draggable circles
-
   svgRegions
   .selectAll("myPath")
   .data(forbidRangeData)
@@ -1203,7 +1206,7 @@ function drawRegionPlot() {
       })
   .enter()
   .append("circle")    
-    .attr("cx", function (d) { return d.x * 100; } )
+    .attr("cx", function (d) { return d.x * width / (numParams-1); } )
     .attr("cy", function (d) { return (1 - d.y)*height; } )
     .attr("type", "range")
     .attr("class", function (d) { return "dot" } )
@@ -1304,7 +1307,7 @@ function renderRegionList() {
     var regionID = regionData[i].id;
     // console.log(regionID);
     var inputTxt = "<input type='radio' id='region-tick-" + regionID +  "' name='forbidden-tick' value=" + regionID + ">"
-    var labelTxt = "<label for='forbidden" + regionID + "'>" + (i+1) + "</label><br>"
+    var labelTxt = "<label id='region-tick-label' for='forbidden" + regionID + "'>" + (i+1) + "</label><br>"
 
     $("#forbidden-region-list").append(inputTxt)
     $("#forbidden-region-list").append(labelTxt)
@@ -1316,7 +1319,7 @@ function renderRegionList() {
     var rangeID = forbidRangeData[i].id;
 
     var inputTxt = "<input type='radio' id='range-tick-" + rangeID +  "' name='forbidden-tick' value=" + rangeID + ">"
-    var labelTxt = "<label for='forbidden" + rangeID + "'>" + (i+1) + "</label><br>"
+    var labelTxt = "<label id='range-tick-label' for='forbidden" + rangeID + "'>" + (i+1) + "</label><br>"
 
     $("#forbidden-range-list").append(inputTxt)
     $("#forbidden-range-list").append(labelTxt)
@@ -1560,7 +1563,7 @@ function addNewForbiddenRegion() {
 
   var slidersValues = [];
   for (var i = 0; i < numParams; i++){
-    slidersValues.push(Number(parent.task.document.getElementById('param' + (i+1) + 'slider').value));
+    slidersValues.push(Number(document.getElementById('param' + (i+1) + 'slider').value));
   }
 
   var normalizedSlidersValues = normalizeParameters(slidersValues, parameterBounds);
@@ -1620,7 +1623,7 @@ function addNewForbiddenRegion() {
   
   let radios = document.querySelectorAll('input[type=radio]');
   for (i=0; i < radios.length; i++){
-    if (radios[i].value == newID){
+    if (radios[i].value == newID && radios[i].id.startsWith("region")){
       radios[i].checked = true;
     }
   }
@@ -1686,7 +1689,7 @@ const addForbiddenRange = function(event) {
   var lowerBoundParam = parameterBounds[dimensionSelected-1][0];
 
 
-  var dataEntered = Number(parent.task.document.getElementById('param' + (dimensionSelected) + 'slider').value);
+  var dataEntered = Number(document.getElementById('param' + (dimensionSelected) + 'slider').value);
   var dataEnteredNorm = (dataEntered - lowerBoundParam) / (upperBoundParam - lowerBoundParam);
 
   var upperBound = Math.min(dataEnteredNorm + defaultWidth, 1.0)
@@ -1762,16 +1765,16 @@ const TestType = {
 function runPilotTest() {
   console.log("runPilotTest");
 
-  parent.task.document.getElementById("test-result").textContent = ""
+  document.getElementById("test-result").textContent = ""
   var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
-  parent.task.document.getElementById("test-result").innerHTML += progressBarHtml;
+  document.getElementById("test-result").innerHTML += progressBarHtml;
   $('.button').prop('disabled', true);
-  parent.task.document.getElementById("test-button").disabled = true;
-  parent.task.document.getElementById("evaluation-button").disabled = true;
-  parent.task.document.querySelectorAll("slider").disabled = true;
+  document.getElementById("test-button").disabled = true;
+  document.getElementById("evaluation-button").disabled = true;
+  document.querySelectorAll("slider").disabled = true;
 
   var paramVals = [];
-  var inputSliders = parent.task.document.querySelectorAll(".slider");
+  var inputSliders = document.querySelectorAll(".slider");
   
   console.log(inputSliders);
 
@@ -1789,7 +1792,7 @@ function runPilotTest() {
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
   const progressInterval = setInterval(function () {
-      parent.task.document.getElementById("test-progress").value = progressVal;
+      document.getElementById("test-progress").value = progressVal;
       progressVal += progressStep; 
       if (progressVal > 100) {
           clearInterval(progressInterval);
@@ -1801,15 +1804,15 @@ function runPilotTest() {
 function runFormalTest() {
   console.log("runFormalTest");
 
-  parent.task.document.getElementById("test-result").textContent = ""
+  document.getElementById("test-result").textContent = ""
   var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
-  parent.task.document.getElementById("test-result").innerHTML += progressBarHtml;
+  document.getElementById("test-result").innerHTML += progressBarHtml;
   $('.button').prop('disabled', true);
-  parent.task.document.getElementById("test-button").disabled = true;
-  parent.task.document.getElementById("evaluation-button").disabled = true;
+  document.getElementById("test-button").disabled = true;
+  document.getElementById("evaluation-button").disabled = true;
 
   var paramVals = [];
-  var inputSliders = parent.task.document.querySelectorAll(".slider");
+  var inputSliders = document.querySelectorAll(".slider");
 
   for (var i = 0; i < inputSliders.length; i++){
     inputSliders[i].disabled = true;
@@ -1825,7 +1828,7 @@ function runFormalTest() {
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
   const progressInterval = setInterval(function () {
-      parent.task.document.getElementById("test-progress").value = progressVal;
+      document.getElementById("test-progress").value = progressVal;
       progressVal += progressStep; 
       if (progressVal > 100) {
           clearInterval(progressInterval);
@@ -1856,12 +1859,12 @@ function getTestResult(paramVals, testType) {
         var objVals = unnormalizeObjectives(objValsNorm, objectiveBounds);
 
         // TODO handle returned objVals
-        parent.task.document.getElementById("test-result").innerHTML += "<br>" + (parseFloat(objVals[0]).toFixed(2) + " , " + parseFloat(objVals[1]).toFixed(2));
-        parent.task.document.querySelectorAll(".button").disabled = false;
+        document.getElementById("test-result").innerHTML += "<br>" + (parseFloat(objVals[0]).toFixed(2) + " , " + parseFloat(objVals[1]).toFixed(2));
+        document.querySelectorAll(".button").disabled = false;
 
         $('.button').prop('disabled', false);
-        parent.task.document.getElementById("test-button").disabled = false;
-        parent.task.document.getElementById("evaluation-button").disabled = false;
+        document.getElementById("test-button").disabled = false;
+        document.getElementById("evaluation-button").disabled = false;
         
         if (testType == TestType.FORMAL){
           var maxID = evaluatedDesigns.length;
@@ -1892,7 +1895,7 @@ function getTestResult(paramVals, testType) {
         drawPcp();
         drawScatter();
 
-        var inputSliders = parent.task.document.querySelectorAll(".slider");
+        var inputSliders = document.querySelectorAll(".slider");
 
         if (conditionID != ConditionType.MOBO){
           for (var i = 0; i < inputSliders.length; i++){
@@ -1967,16 +1970,17 @@ function runMOBO(){
   var progressBarHtml = "<progress id='mobo-progress' value='0' max='100'></progress>";
   document.getElementById("mobo-loading").innerHTML += progressBarHtml;
   $('.button').prop('disabled', true);
-  parent.task.document.getElementById("test-button").disabled = true;
-  parent.task.document.getElementById("evaluation-button").disabled = true;
+  document.getElementById("test-button").disabled = true;
+  document.getElementById("evaluation-button").disabled = true;
   
-  var inputSliders = parent.task.document.querySelectorAll(".slider");
+  var inputSliders = document.querySelectorAll(".slider");
   for (var i = 0; i < inputSliders.length; i++){
     inputSliders[i].disabled = true;
   }
 
   getMOBOResult(evaluatedDesigns, regionData, forbidRangeData);
   moboUsed = true;
+  progressBarFinished = false;
 
   var waitTime = 5; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
@@ -1984,8 +1988,20 @@ function runMOBO(){
   const progressInterval = setInterval(function () {
       document.getElementById("mobo-progress").value = progressVal;
       progressVal += progressStep; 
-      if (progressVal > 100) {
+      console.log(progressVal);
+      if (progressBarFinished){
+        document.getElementById("mobo-progress").value = 100;
+
+        progressStep = 0;
+        waitTime = 0;
+        progressVal = 100;
+
+        progressBarFinished = false;
+      }
+      else{
+        if (progressVal >= 100) {
           clearInterval(progressInterval);
+        }
       }
   }, 100);
 }
@@ -2057,24 +2073,57 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
         // console.log(proposedLocation);
         for (var i = 0; i < numParams; i++){
           // console.log(parameterValues[i]);
-          parent.task.document.getElementById('param' + (i+1) + 'slider').value = proposedLocationUnnormalized[i];
-          parent.task.document.getElementById('param' + (i+1) + 'output').value = proposedLocationUnnormalized[i];
+          document.getElementById('param' + (i+1) + 'slider').value = proposedLocationUnnormalized[i];
+          document.getElementById('param' + (i+1) + 'output').value = proposedLocationUnnormalized[i];
         }
 
         $('.button').prop('disabled', false);
-        parent.task.document.getElementById("test-button").disabled = false;
-        parent.task.document.getElementById("evaluation-button").disabled = false;
+        document.getElementById("test-button").disabled = false;
+        document.getElementById("evaluation-button").disabled = false;
         
-        var inputSliders = parent.task.document.querySelectorAll(".slider");
-        for (var i = 0; i < inputSliders.length; i++){
-          inputSliders[i].disabled = false;
+        var inputSliders = document.querySelectorAll(".slider");
+        if (conditionID != ConditionType.MOBO){
+          for (var i = 0; i < inputSliders.length; i++){
+            inputSliders[i].disabled = false;
+          }
+        }
+      
+        drawGuidingLine();
+
+        for (var i = 0; i < numParams; i++){
+          document.getElementById('param' + (i+1) + 'slider').dispatchEvent(new Event('input'));
+          console.log("Hello");
         }
 
-        drawGuidingLine();
+        progressBarFinished = true;
+        
+        document.getElementById("evaluation-button").disabled = false;
+
       },
       error: function(result){
           console.log("Error in getTestResult: " + result.message);
       }
   });
+}
+
+function finishExperiment(){
+  var sureFinished = confirm("Are you sure you want to finish?");
+  if (sureFinished){
+    $.ajax({
+      url: "/cgi/finish_log.py",
+      type: "post",
+      datatype: "json",
+      data: {   'participant_id'    :String(participantID),
+                'application_id'    :String(applicationID),
+                'condition_id'      :String(conditionID) },
+      success: function(result) {
+        submitReturned = true;
+        parent.window.location.href = "end.html";
+      },
+      error: function(result){
+          console.log("Error in finishing experiment: " + result.message);
+      }
+    });
+  }
 }
 

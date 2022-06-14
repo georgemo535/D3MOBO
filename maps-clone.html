@@ -243,15 +243,16 @@
         $( window ).on('load', function() {
             setTimeout(function() 
             {   
-                $("#param1slider", window.parent.document).on('input', function () {
+                var moboInterface = window.parent.parent.document.getElementById("mobo-interface");
+                moboInterface.contentWindow.document.getElementById("param1slider").addEventListener("input", function () {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
                     var p1 = (val - min) / (max - min);
                     setIconTransparency(p1);
-                })
+                });
 
-                $("#param2slider", window.parent.document).on('input', function () {
+                moboInterface.contentWindow.document.getElementById("param2slider").addEventListener("input", function () {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
@@ -259,7 +260,7 @@
                     setDistanceIcon(p2);
                 })
 
-                $("#param3slider", window.parent.document).on('input', function () {
+                moboInterface.contentWindow.document.getElementById("param3slider").addEventListener("input", function () {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
@@ -267,7 +268,7 @@
                     setIconSize(p3);
                 })
 
-                $("#param4slider", window.parent.document).on('input', function () {
+                moboInterface.contentWindow.document.getElementById("param4slider").addEventListener("input", function ()  {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
@@ -275,7 +276,7 @@
                     setInformationSize(p4);
                 })
 
-                $("#param5slider", window.parent.document).on('input', function () {
+                moboInterface.contentWindow.document.getElementById("param5slider").addEventListener("input", function () {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
@@ -284,11 +285,11 @@
                 })
 
                 // Initialize
-                var p1El = $("#param1slider", window.parent.document);
-                var p2El = $("#param2slider", window.parent.document);
-                var p3El = $("#param3slider", window.parent.document);
-                var p4El = $("#param4slider", window.parent.document);
-                var p5El = $("#param5slider", window.parent.document);
+                var p1El = moboInterface.contentWindow.document.getElementById("param1slider");
+                var p2El = moboInterface.contentWindow.document.getElementById("param2slider");
+                var p3El = moboInterface.contentWindow.document.getElementById("param3slider");
+                var p4El = moboInterface.contentWindow.document.getElementById("param4slider");
+                var p5El = moboInterface.contentWindow.document.getElementById("param5slider");
 
                 setIconTransparency(normalizedSliderVal(p1El));
                 setDistanceIcon(normalizedSliderVal(p2El));

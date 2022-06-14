@@ -12,6 +12,7 @@ h3 {
 output {
     width: 50px;
     display: inline-block;
+    font-size: 12px;
 }
 
 .main-panel {
@@ -97,51 +98,52 @@ output {
   }
   
 .slider {
--webkit-appearance: none;
-width: 300px;
-height: 15px;
-border-radius: 5px;  
-background: #d3d3d3;
-outline: none;
-opacity: 0.7;
--webkit-transition: .2s;
-transition: opacity .2s;
+    -webkit-appearance: none;
+    width: 230px;
+    height: 15px;
+    border-radius: 3px;  
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+    margin: auto;
+    margin: 5px 5px 5px 5px;
 }
 
 .slider::-webkit-slider-thumb {
--webkit-appearance: none;
-appearance: none;
-width: 25px;
-height: 25px;
-border-radius: 50%; 
-background: #04AA6D;
-cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%; 
+    background: #04AA6D;
+    cursor: pointer;
 }
 
 .slider::-moz-range-thumb {
-width: 25px;
-height: 25px;
-border-radius: 50%;
-background: #04AA6D;
-cursor: pointer;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #04AA6D;
+    cursor: pointer;
 }
 
 .button {
     border-radius: 10px;
-background-color: white;
-color: black;
-border: 2px solid #5c5c5c;
-/* border: none; */
-/* color: white; */
-padding: 10px 10px;
-text-align: center;
-text-decoration: none;
-/* display: inline-block; */
-font-size: 14px;
-margin: 4px 2px;
-cursor: pointer;
+    background-color: white;
+    color: black;
+    border: 2px solid #5c5c5c;
+    /* border: none; */
+    /* color: white; */
+    padding: 10px 10px;
+    text-align: center;
+    text-decoration: none;
+    /* display: inline-block; */
+    font-size: 14px;
+    margin: 4px 2px;
+    cursor: pointer;
 }
-
 
 .button:disabled{
     background: rgb(172, 172, 172);
@@ -153,9 +155,10 @@ cursor: pointer;
 }
 
 .prog-wrap {
-position: relative;
-border: 1px solid #acb2d8;
-width: 300px;
+    position: relative;
+    border: 1px solid #acb2d8;
+    width: 300px;
+    margin: 5px 5px 5px 5px;
 }
 
 .prog-wrap, .prog-bar, .prog-percent { height: 30px; }
@@ -180,6 +183,35 @@ width: 300px;
 
 label {
     display: inline-block;
-    width: 150px;
-    text-align: right;
+    width: 230px;
+    text-align: center;
+    font-size: 12px;
+    margin: 5px 5px 5px 5px;
   }
+
+#region-tick-label, #range-tick-label {
+    display: inline-block;
+    width: 20px;
+    text-align: center;
+    font-size: 12px;
+    margin: 5px 5px 5px 5px;
+}
+
+h2 {
+    width: 230px;
+    font-size: 16px;
+    text-align: center;
+    margin: 5px 5px 5px 5px;
+}
+
+#coverage-percent-heading, #use-of-mobo-percent-heading {
+    width: 300px;
+    font-size: 16px;
+    text-align: center;
+    margin: 5px 5px 5px 5px;
+}
+
+#finish-button{
+    margin: auto;
+    text-align: center;
+}

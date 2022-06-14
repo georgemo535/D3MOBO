@@ -222,7 +222,7 @@
     var refreshRate = 10;
     setInterval(function(){
         i += refreshRate;
-        update(i % 360) 
+        update(i % 360); 
     },timeInterval);
 
     const centre = refreshImg.node().getBBox();
@@ -262,7 +262,8 @@
         $( window ).on('load', function() {
             setTimeout(function() 
             {   
-                $("#param1slider", window.parent.document).on('input', function () {
+                var moboInterface = window.parent.parent.document.getElementById("mobo-interface");
+                moboInterface.contentWindow.document.getElementById("param1slider").addEventListener("input", function () {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
@@ -270,7 +271,7 @@
                     setAdvertisementRate(p1);
                 })
 
-                $("#param2slider", window.parent.document).on('input', function () {
+                moboInterface.contentWindow.document.getElementById("param2slider").addEventListener("input", function () {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
@@ -278,7 +279,7 @@
                     setNotificationRate(p2);
                 })
 
-                $("#param3slider", window.parent.document).on('input', function () {
+                moboInterface.contentWindow.document.getElementById("param3slider").addEventListener("input", function () {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
@@ -286,7 +287,7 @@
                     setPersonalizationRate(p3);
                 })
 
-                $("#param4slider", window.parent.document).on('input', function () {
+                moboInterface.contentWindow.document.getElementById("param4slider").addEventListener("input", function () {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
@@ -294,7 +295,7 @@
                     setModerationRate(p4);
                 })
 
-                $("#param5slider", window.parent.document).on('input', function () {
+                moboInterface.contentWindow.document.getElementById("param5slider").addEventListener("input", function () {
                     var val = $(this).val();
                     var max = $(this).prop('max');
                     var min = $(this).prop('min');
@@ -303,11 +304,11 @@
                 })
 
                 // Initialize
-                var p1El = $("#param1slider", window.parent.document);
-                var p2El = $("#param2slider", window.parent.document);
-                var p3El = $("#param3slider", window.parent.document);
-                var p4El = $("#param4slider", window.parent.document);
-                var p5El = $("#param5slider", window.parent.document);
+                var p1El = moboInterface.contentWindow.document.getElementById("param1slider");
+                var p2El = moboInterface.contentWindow.document.getElementById("param2slider");
+                var p3El = moboInterface.contentWindow.document.getElementById("param3slider");
+                var p4El = moboInterface.contentWindow.document.getElementById("param4slider");
+                var p5El = moboInterface.contentWindow.document.getElementById("param5slider");
 
                 setAdvertisementRate(normalizedSliderVal(p1El));
                 setPersonalizationRate(normalizedSliderVal(p2El));

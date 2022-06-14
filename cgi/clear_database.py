@@ -12,12 +12,9 @@ db_path = 'data/database.db'
 conn = sqlite3.connect(db_path)
 c = conn.cursor()
 
-c.execute("SELECT * FROM time")
+c.execute("DELETE FROM function")
+c.execute("DELETE FROM mobo")
+c.execute("DELETE FROM time")
 
-rows = c.fetchall()
-
-for row in rows:
-    print(row)
-    
 conn.commit()
 conn.close()

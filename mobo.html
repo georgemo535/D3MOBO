@@ -9,28 +9,45 @@
     <!-- <div class="wrapper"> -->
     <table>
         <tr>
-            <td><div id="pcp"></div></td>
-            <td><div id="scatter"></div></td>
+            <td colspan="1">
+                <h2>Design Parameters</h2>
+                <div id="param-sliders" class="sliders"></div>
+            </td>
+            <td colspan="1"><div id="pcp"></div></td>
+            <td colspan="1"><div id="scatter"></div></td>
         </tr>
         <tr>
-            <td><div id="regions"></div></td>
-            <td>
+            <!-- <td><div id="scatter"></div></td> -->
+            <td colspan="1">
+                <div id="mobo" style="text-align: center;">
+                    <button class="button" id="evaluation-button">Perform Formal Evaluation</button>
+                    <button class="button" id="test-button">Perform Heuristic Evaluation</button>
+                    <div id="test-result"></div>
+
+                    <br></br>
+
+                    <button class="button" id="button-mobo">New Design from MOBO</button>
+                    <div id="mobo-loading" style="text-align: center;"></div>
+
+                    <br></br>
+
+                </div>
+            
+                <h3 id="coverage-percent-heading">Design Space Coverage:</h3>
+                <div id="progress-coverage"></div>
+                <h3 id="use-of-mobo-percent-heading">Use of MOBO: </h3>
+                <div id="use-of-mobo"></div>
+
+            </td>
+            <td colspan="1"><div id="regions"></div></td>
+            <td colspan="1">
                 <table style="width: 400px;">
                     <tr><td><h3 id="forbidden-region-heading">Forbidden Region</h3></td><td><h3 id="forbidden-range-heading">Forbidden Range</h3></td></tr>
                 <tr><form action="#" id="forbidden-list">
                     <td>
-                    <div id="forbidden-region-list">
-
-                    </div>
-                     <!-- <input type="radio" id="forbidden1" name="forbidden1" value="1">
-                     <label for="forbidden1">1</label><br>
-                     <input type="radio" id="forbidden2" name="forbidden1" value="2">
-                     <label for="forbidden2">2</label><br> -->
-                
+                    <div id="forbidden-region-list"></div>
                 </td><td>
-                    <div id="forbidden-range-list">
-                        
-                    </div>
+                    <div id="forbidden-range-list"></div>
                 </td>
                 </form>
                 </tr><tr>
@@ -49,29 +66,16 @@
                 <button class="button" id="button-add-forbidden">Add New Forbidden Region</button>
             </td>
         </tr>
-    </table>
-
-    <hr>
-
-    <div id="mobo" style="text-align: center;">
-        <button class="button" id="button-mobo">New Design from MOBO</button>
-        <div id="mobo-loading" style="text-align: center;">
-        </div>
-    </div>
-
-    <table style="width: 800px;">
-        <tr><td><h3 id="coverage-percent-heading">Design Space Coverage:</h3></td><td><h3 id="use-of-mobo-percent-heading">Use of MOBO: </h3></td></tr>
-        <tr><td>
-            <div id="progress-coverage">
-
-            </div>
-        </td><td>
-            <div id="use-of-mobo">
-                
-            </div>
-        </td>
+        <tr>
+            <td colspan="1"></td>
+            <td colspan="1" style="text-align:center;">
+                <button class="button" id="finish-button">Finish</button>
+            </td>
+            <td colspan="1"></td>
         </tr>
     </table>
+
+    <!-- <hr> -->
 
     <script src="https://d3js.org/d3.v6.js"></script>
     <script src="scripts/main.js"></script>

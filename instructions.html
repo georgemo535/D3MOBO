@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Settings Page</title>
+    <style>
+      body, html{
+        min-height: 100%;
+        height: 100%;
+        margin: 0px;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+      }
+
+      input[type=number] {
+        width: 25%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+      }
+
+      h1 {text-align: center;}
+
+      button {
+        margin:auto;
+        display:block;
+      }
+
+      #instructions-start, #application-instructions, #setting-instructions {
+        margin:auto;
+        width: 1000px;
+      }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  </head>
+  <body onload="renderInstructions()">
+    <h1>Instructions</h1>
+    <div class="container">
+        <div id="instructions-start"></div>
+        <div id="application-instructions"></div>
+        <div id="setting-instructions"></div>
+        <button onclick="nextPageTask();" type="button"> Continue </button>
+    </div>
+    <script>
+
+        const ConditionType = {
+        HYBRID: 0,
+        DESIGNER: 1,
+        MOBO: 2
+        }
+
+        const ApplicationType = {
+        TWITTER: 0,
+        STACKOVERFLOW: 1,
+        GOOGLEMAPS: 2
+        }
+
+        function renderInstructions(){
+            var participantID = localStorage.getItem("id");
+            var conditionID = localStorage.getItem("exp-condition");
+            var applicationID = localStorage.getItem("app");
+
+            var instructionHeadingText = "In this task, you will be trying to find the design parameter configuration that provides the optimal tradeoff between two competing objectives within 30 minutes."
+            instructionHeadingText += "<br></br>"
+
+            var applicationText;
+            if (applicationID == ApplicationType.TWITTER){
+                applicationText = "<b>Design Parameters</b>"
+                applicationText += "<br></br>"
+                applicationText += "\n You will be shown a design task for a social media website. Your goal is to find a design configuration that optimally satisfies both objectives of user rating and revenue."
+                applicationText += "<br></br>"
+                applicationText += "There will be five design parameters as follows: "
+                applicationText += "<br></br>"
+                applicationText += "\n 1. <b>Ads</b> - the advertisement density in the page, ranging from 0 to 1."
+                applicationText += "<br></br>"
+                applicationText += "\n 2. <b>Notification</b> - the notification rate on a phone, ranging from every 0 hours to every 2 hours on average."
+                applicationText += "<br></br>"
+                applicationText += "\n 3. <b>Personalization</b> - the personalization rate on the content shown, ranging from 0 to 1."
+                applicationText += "<br></br>"
+                applicationText += "\n 4. <b>Moderation</b> - the moderation rate of the app by community moderators, ranging from 0 to 1."
+                applicationText += "<br></br>"
+                applicationText += "\n 5. <b>Refresh</b> - the refresh rate of the content, ranging from 0 to 20 minutes."
+                applicationText += "<br></br>"
+
+                applicationText += "<b>Objectives</b>"
+                applicationText += "<br></br>"
+
+                applicationText += "\n The two objectives are as follows: "
+                applicationText += "<br></br>"
+                applicationText += "\n 1. The <b>revenue</b> generated per day - from 0 to 20 thousands of dollars."
+                applicationText += "<br></br>"
+                applicationText += "\n 2. The average <b>user rating</b> of the app - from 0 to 5 stars."
+                applicationText += "<br></br>"
+            }
+            if (applicationID == ApplicationType.STACKOVERFLOW){
+                applicationText = "<b>Design Parameters</b>"
+                applicationText += "<br></br>"
+                applicationText += "You will be shown a design task for a programming help forum. Your goal is to find a design configuration that optimally satisfies both objectives of the average answering time for a new question and percentage of questions answered."
+                applicationText += "<br></br>"
+                applicationText += "There will be five design parameters as follows: "
+                applicationText += "<br></br>"
+                applicationText += "\n 1. <b>Categories</b> - the number of question categories, ranging from 5 to 50."
+                applicationText += "<br></br>"
+                applicationText += "\n 2. <b>Refresh</b> - the refresh rate of the content, ranging from 0 to 1000 seconds."
+                applicationText += "<br></br>"
+                applicationText += "\n 3. <b>Preview</b> - the length of the question preview shown in the forum listings, ranging from 0 to 500 characters."
+                applicationText += "<br></br>"
+                applicationText += "\n 4. <b>Tags</b> - the maximum number of tags that a question can have, ranging from 1 to 10."
+                applicationText += "<br></br>"
+                applicationText += "\n 5. <b>Activity rating</b> - the threshold rating to enable a user to answer questions, ranging from 0 to 5."
+                applicationText += "<br></br>"
+
+                applicationText += "<b>Objectives</b>"
+                applicationText += "<br></br>"
+
+                applicationText += "\n The two objectives are as follows: "
+                applicationText += "<br></br>"
+                applicationText += "\n 1. The average <b>answering rate</b> for a new question appropriately - from 0 to 2."
+                applicationText += "<br></br>"
+                applicationText += "\n 2. The <b>percentage of questions answered</b> appropriately - from 0 to 100 percent."
+                applicationText += "<br></br>"
+            }
+            if (applicationID == ApplicationType.GOOGLEMAPS){
+                applicationText = "<b>Design Parameters</b>"
+                applicationText += "<br></br>"
+                applicationText += "You will be shown a design task for a restaurant map website. Your goal is to find a design configuration that optimally satisfies both objectives of the time and accuracy when users are tasked to find all restaurants in a certain area with a certain description."
+                applicationText += "<br></br>"
+                applicationText += "There will be five design parameters as follows: "
+                applicationText += "<br></br>"
+                applicationText += "\n 1. <b>Transparency</b> - the transparency of the location icon, ranging from 0.5 to 1.0."
+                applicationText += "<br></br>"
+                applicationText += "\n 2. <b>Distance</b> - the distance that the cursor is from the icon for the restaurant icon to pop up, ranging from 5 to 50."
+                applicationText += "<br></br>"
+                applicationText += "\n 3. <b>Icon Size</b> - the size of the location icon, ranging from 1 to 10."
+                applicationText += "<br></br>"
+                applicationText += "\n 4. <b>Box Size</b> - the box size of the restaurant description when the location icon is clicked on, ranging from 10 to 50."
+                applicationText += "<br></br>"
+                applicationText += "\n 5. <b>Text Size</b> - the text font size of the restaurant name on the map, ranging from 10 to 30."
+                applicationText += "<br></br>"
+
+                applicationText += "<b>Objectives</b>"
+                applicationText += "<br></br>"
+
+                applicationText += "\n The two objectives are as follows: "
+                applicationText += "<br></br>"
+                applicationText += "\n 1. The <b>average rate</b> for a user to find all restaurants in an area with a certain description - from 0 to 2."
+                applicationText += "<br></br>"
+                applicationText += "\n 2. The <b>accuracy</b> of a user in finding all restaurants in an area with a certain description  - from 0 to 100 percent."
+                applicationText += "<br></br>"
+            }
+            
+
+            var conditionText;
+            if (conditionID == ConditionType.HYBRID){
+                conditionText = "<b>Actions</b>"
+                conditionText += "<br></br>"
+                conditionText += "The particular manner in which you will be designing involves the following: "
+                conditionText += "<br></br>"
+                conditionText += "\t\u2022 <b>Manually tuning</b> the design parameters on the sliders"
+                conditionText += "<br></br>"
+                conditionText += "\t\u2022 <b>Asking MOBO</b> to propose a new promising design"
+                conditionText += "<br></br>"
+                conditionText += "\t\u2022 Inputting <b>forbidden regions</b> and <b>forbidden ranges</b>"
+                conditionText += "<br></br>"
+
+                conditionText += "\n We request that you input at least two forbidden regions and two forbidden ranges."
+                conditionText += "<br></br>"
+
+                conditionText += "\n To simulate the real design process of pilot testing and formal evaluations, you have two ways of evaluating a design:"
+                conditionText += "<br></br>"
+                conditionText += "\n 1. Performing a <b>Formal Evaluation</b>: This gives a quite accurate result, but will take 40 seconds."
+                conditionText += "<br></br>"
+                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives quite an inaccurate result, but will take 5 seconds."
+                conditionText += "<br></br>"
+            }
+            if (conditionID == ConditionType.DESIGNER){
+                conditionText = "<b>Actions</b>"
+                conditionText += "<br></br>"
+                conditionText += "The particular manner in which you will be designing involves the following: "
+                conditionText += "<br></br>"
+                conditionText += "\t\u2022 <b>Manually tuning</b> the design parameters on the sliders"
+                conditionText += "<br></br>"
+
+                conditionText += "\n To simulate the real design process of pilot testing and formal evaluations, you have two ways of evaluating a design:"
+                conditionText += "<br></br>"
+                conditionText += "\n 1. Performing a <b>Formal Evaluation</b>: This gives a quite accurate result, but will take 40 seconds."
+                conditionText += "<br></br>"
+                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives quite an inaccurate result, but will take 5 seconds."
+                conditionText += "<br></br>"
+            }
+            if (conditionID == ConditionType.MOBO){
+                conditionText = "<b>Actions</b>"
+                conditionText += "<br></br>"
+                conditionText += "The particular manner in which you will be designing involves the following: "
+                conditionText += "<br></br>"
+                conditionText += "\t\u2022 <b>Asking MOBO</b> to propose a new promising design"
+                conditionText += "<br></br>"
+
+                conditionText += "\n You will only have the following option to evaluate a design:"
+                conditionText += "<br></br>"
+                conditionText += "\n 1. <b>Performing a Formal Evaluation</b>: This gives a quite accurate result, but will take 40 seconds."
+                conditionText += "<br></br>"
+            }
+
+            document.getElementById("instructions-start").innerHTML += instructionHeadingText;
+            document.getElementById("application-instructions").innerHTML += applicationText;
+            document.getElementById("setting-instructions").innerHTML += conditionText;
+        }
+
+        function nextPageTask(){
+          participantID = localStorage.getItem("id");
+          conditionID = localStorage.getItem("exp-condition");
+          applicationID = localStorage.getItem("app");
+          $.ajax({
+            url: "/cgi/start_log.py",
+            type: "post",
+            datatype: "json",
+            data: {   'participant_id'    :String(participantID),
+                      'application_id'    :String(applicationID),
+                      'condition_id'      :String(conditionID) },
+            success: function(result) {
+              submitReturned = true;
+              var url = "main.php";
+              location.href = url;
+            },
+            error: function(result){
+                console.log("Error in finishing experiment: " + result.message);
+            }
+          });
+        }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Settings Page</title>
+    <style>
+        body, html{
+            min-height: 100%;
+            height: 100%;
+            margin: 0px;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        input[type=number] {
+            width: 25%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        h1 {text-align: center;}
+
+        #settings-instructions {
+            margin: auto;
+            width: 1000px;
+            }
+    
+        p {
+            text-align: center;
+        }
+
+        button {
+            margin:auto;
+            display:block;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <div id="finish-start">
+            <h1> Finished </h1>
+        </div>
+        <div id="finish-instructions">
+
+        </div>
+        <div id="setting-instructions">
+            <p>
+                Click the button below to return to the settings page.
+            </p>
+        </div>
+        <button onclick="returnTask();" type="button"> Return </button>
+    </div>
+    <script>
+        function returnTask(){
+            var url = "index.html";
+            location.href = url;
+        }
+    </script>
+  </body>
+</html>
