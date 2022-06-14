@@ -1792,7 +1792,7 @@ function runPilotTest() {
 
   getTestResult(paramVals, TestType.PILOT);
 
-  var waitTime = 1; //s, this should be the same as in the python script
+  var waitTime = 5; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
   const progressInterval = setInterval(function () {
@@ -1828,7 +1828,7 @@ function runFormalTest() {
 
   getTestResult(paramVals, TestType.FORMAL);
 
-  var waitTime = 5; //s, this should be the same as in the python script
+  var waitTime = 40; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
   const progressInterval = setInterval(function () {

@@ -20,8 +20,8 @@ success = True
 formData = cgi.FieldStorage()
 
 # Config params
-testWaitTime = 5 #s
-pilotWaitTime = 1 #s
+testWaitTime = 40 #s
+pilotWaitTime = 5 #s
 
 # Function configs
 # weights = np.array([[0.5, 0.6, 0.4, 0.7, 0.1], 
