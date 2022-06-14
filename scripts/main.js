@@ -72,9 +72,13 @@ async function renderMoboInterface() {
   var midPointsScaled = normalizeParameters(midPoints, parameterBounds);
   designLineData = [{id: "current", x1: midPointsScaled[0], x2: midPointsScaled[1], x3: midPointsScaled[2], x4: midPointsScaled[3], x5: midPointsScaled[4]}];
 
-  regionData = await parseRegions("../data/regions.csv");
-  evaluatedDesigns = await parseDesigns("../data/data.csv");
-  forbidRangeData = await parseRanges("../data/ranges.csv");
+  // regionData = await parseRegions("../data/regions.csv");
+  // evaluatedDesigns = await parseDesigns("../data/data.csv");
+  // forbidRangeData = await parseRanges("../data/ranges.csv");
+
+  regionData = [];
+  evaluatedDesigns = [];
+  forbidRangeData = [];
 
   constructParameterSlider();
   drawPcp();
@@ -905,7 +909,7 @@ function getDominatingSet(evaluatedDesigns){
   for (var i = 0; i < sortedObjectiveSecond.length; i++){
     if (Number(sortedObjectiveSecond[i].y1) >= Number(maxFirst)){
       maxFirst = Number(sortedObjectiveSecond[i].y1);
-      console.log(maxFirst);
+      // console.log(maxFirst);
       dominatingSet.push(sortedObjectiveSecond[i]);
     }
   }
@@ -969,7 +973,7 @@ function drawRegionPlot() {
     
   // The path function take a row of the csv as input, and return x and y coordinates of the area to draw for this raw.
   function pathRegion(d) {
-    console.log(d);
+    // console.log(d);
     var regionPath = "M ";
 
     for (var i = 0; i < d.lowerBound.length; i++){
@@ -1581,7 +1585,7 @@ function addNewForbiddenRegion() {
       takenMaxID = regionData[i].id;
     }
   }
-  console.log(takenMaxID);
+  // console.log(takenMaxID);
 
   var newID = Number(takenMaxID) + 1;
   var newRegionData = {
@@ -1818,7 +1822,7 @@ function runFormalTest() {
     inputSliders[i].disabled = true;
     var name = inputSliders[i].id;
     var val = inputSliders[i].value;
-    console.log(name + ": " + val);
+    // console.log(name + ": " + val);
     paramVals.push(val);
   }
 
@@ -1843,7 +1847,7 @@ function getTestResult(paramVals, testType) {
   var paramValsJson = JSON.stringify(paramValsNorm);
 
   $.ajax({
-      url: "/cgi/query_function.py",
+      url: "./cgi/query_function.py",
       type: "post",
       datatype:"json",                    
       data: { 'param_vals'        :paramValsJson,
@@ -1988,7 +1992,7 @@ function runMOBO(){
   const progressInterval = setInterval(function () {
       document.getElementById("mobo-progress").value = progressVal;
       progressVal += progressStep; 
-      console.log(progressVal);
+
       if (progressBarFinished){
         document.getElementById("mobo-progress").value = 100;
 
@@ -2056,7 +2060,7 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
   var forbidRegionsJson = JSON.stringify(processedRegions);
 
   $.ajax({
-      url: "/cgi/query_mobo.py",
+      url: "./cgi/query_mobo.py",
       type: "post",
       datatype: "json",
       data: {   'design_params'   : designParamsJson,
@@ -2110,7 +2114,7 @@ function finishExperiment(){
   var sureFinished = confirm("Are you sure you want to finish?");
   if (sureFinished){
     $.ajax({
-      url: "/cgi/finish_log.py",
+      url: "./cgi/finish_log.py",
       type: "post",
       datatype: "json",
       data: {   'participant_id'    :String(participantID),

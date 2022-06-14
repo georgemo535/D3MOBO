@@ -212,7 +212,7 @@
           conditionID = localStorage.getItem("exp-condition");
           applicationID = localStorage.getItem("app");
           $.ajax({
-            url: "/cgi/start_log.py",
+            url: "./cgi/start_log.py",
             type: "post",
             datatype: "json",
             data: {   'participant_id'    :String(participantID),
