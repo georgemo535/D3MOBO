@@ -20,7 +20,7 @@ success = True
 formData = cgi.FieldStorage()
 
 # Config params
-testWaitTime = 40 #s
+testWaitTime = 30 #s
 pilotWaitTime = 5 #s
 
 # Function configs

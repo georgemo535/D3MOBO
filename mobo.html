@@ -20,23 +20,37 @@
             <!-- <td><div id="scatter"></div></td> -->
             <td colspan="1">
                 <div id="mobo" style="text-align: center;">
-                    <button class="button" id="evaluation-button">Perform Formal Evaluation</button>
-                    <button class="button" id="test-button">Perform Heuristic Evaluation</button>
+                    <div class="tooltip">
+                        <button class="button" id="evaluation-button">Perform Formal Evaluation</button>
+                        <span class="tooltiptext">This will give a more accurate result on the objectives, but will take much longer. Shows the result on the plots and below.</span>
+                    </div>
+                    <div class = "tooltip">
+                        <button class="button" id="test-button">Perform Heuristic Evaluation</button>
+                        <span class="tooltiptext">This will give a less accurate result on the objectives, but will be quick. Shows the result on the plots and below.</span>
+                    </div>
                     <div id="test-result"></div>
 
                     <br></br>
-
-                    <button class="button" id="button-mobo">New Design from MOBO</button>
+                    
+                    <div class="tooltip">
+                        <button class="button" id="button-mobo">New Design from MOBO</button>
+                        <span class="tooltiptext">This will ask MOBO for a new promising design proposal which will be updated on the sliders.</span>
+                    </div>
                     <div id="mobo-loading" style="text-align: center;"></div>
 
                     <br></br>
 
                 </div>
-            
-                <h3 id="coverage-percent-heading">Design Space Coverage:</h3>
-                <div id="progress-coverage"></div>
-                <h3 id="use-of-mobo-percent-heading">Use of MOBO: </h3>
-                <div id="use-of-mobo"></div>
+                <div class="tooltip">
+                    <h3 id="coverage-percent-heading">Design Space Coverage:</h3>
+                    <div id="progress-coverage"></div>
+                    <span class="tooltiptext">This shows how much of the design space has been explored with formal evaluations.</span>
+                </div>
+                <div class="tooltip">
+                    <h3 id="use-of-mobo-percent-heading">Use of MOBO: </h3>
+                    <div id="use-of-mobo"></div>
+                    <span class="tooltiptext">This shows the percentage time that MOBO is used to get a design that is formally evaluated as opposed to manual design.</span>
+                </div>
 
             </td>
             <td colspan="1"><div id="regions"></div></td>
@@ -61,15 +75,27 @@
                 </tr>
                 </table>
                 <br>
-                <button class="button" id="clear-selection-button">Clear</button>
-                <button class="button" id="button-delete-forbidden">Delete</button>
-                <button class="button" id="button-add-forbidden">Add New Forbidden Region</button>
+                <div class="tooltip">
+                    <button class="button" id="clear-selection-button">Clear</button>
+                    <span class="tooltiptext">Clear all selections.</span>
+                </div>
+                <div class="tooltip">
+                    <button class="button" id="button-delete-forbidden">Delete</button>
+                    <span class="tooltiptext">Delete the selected forbidden region or range.</span> 
+                </div>
+                <div class="tooltip">
+                    <button class="button" id="button-add-forbidden">Add New Forbidden Region</button>
+                    <span class="tooltiptext">Add a new forbidden region centered around the values currently on the sliders.</span> 
+                </div>
             </td>
         </tr>
         <tr>
             <td colspan="1"></td>
             <td colspan="1" style="text-align:center;">
-                <button class="button" id="finish-button">Finish</button>
+                <div class="tooltip">
+                    <button class="button" id="finish-button">Finish</button>
+                    <span class="tooltiptext">Finish the design process.</span> 
+                </div>
             </td>
             <td colspan="1"></td>
         </tr>

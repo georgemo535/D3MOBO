@@ -17,6 +17,11 @@ var participantID;
 var conditionID;
 var applicationID;
 
+// Most recent query
+var mostRecentType;
+var mostRecentDesign;
+var mostRecentObjectives;
+
 var designLineData;
 
 var moboUsed = false;
@@ -85,6 +90,12 @@ async function renderMoboInterface() {
   drawScatter();
 
   document.getElementById("finish-button").addEventListener("click", finishExperiment);
+
+  $("#add-record-button", window.parent.task.document).click(addRecentTable);
+  $(window.parent.task.document).on('click', ".record-delete", deleteRowRecentTable);
+  $(window)
+  $(window.parent.task.document).on('click', ".record-up", moveRowTableUp);
+  $(window.parent.task.document).on('click', ".record-down", moveRowTableDown);
 
   if (conditionID == ConditionType.HYBRID){
     renderRegionPlot = drawRegionPlot();
@@ -264,6 +275,8 @@ function normalizeObjectives(objectives, bounds){
 
 function unnormalizeObjectives(objectives, bounds){
   var unnormalizedObjs = [];
+  console.log(objectives);
+  console.log(bounds);
   for (var i = 0; i < numObjs; i++){
     var upperBound = Number(bounds[i][1]);
     var lowerBound = Number(bounds[i][0]);
@@ -300,6 +313,7 @@ const tooltipPcp = d3.select("#pcp")
 .style("padding", "5px")
 .style("font-size", "10px")
 .html("Design Parameters:")
+.style("visibility", "hidden")
 
 const svgScatter = d3.select("#scatter")
 .append("svg")
@@ -320,6 +334,7 @@ const tooltipScatter = d3.select("#scatter")
 .style("padding", "5px")
 .style("font-size", "10px")
 .html("Objectives:")
+.style("visibility", "hidden")
 
 const svgRegions = d3.select("#regions")
   .append("svg")
@@ -408,23 +423,40 @@ const highlightPcp = function(event, d){
     .style("opacity", "0.8")
     .attr("r", 7)
 
-  tooltipPcp.html("Design Parameters: " + String(unnormalizeParameters(("[" + d3.select(this).attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
-    .transition()
-    .duration(500)
+  tooltipPcp.html(String(unnormalizeParameters(("[" + d3.select(this).attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
     .style("opacity", 1)
-    
-  let objectivesDesign = svgScatter.selectAll(".dot").
+    .style("left", 25 + "px")
+    .style("top", -25 + "px")
+    .style("visibility", "visible")
+  
+  // console.log(event.x);
+  // console.log(event.y);
+
+  let objectivesDesignY1 = svgScatter.selectAll(".dot").
   filter(function(){
     return d3.select(this).attr("value") == idVal;
-  }).attr("objectives");
+  }).attr("y1");
 
+  let objectivesDesignY2 = svgScatter.selectAll(".dot").
+  filter(function(){
+    return d3.select(this).attr("value") == idVal;
+  }).attr("y2");
 
-  tooltipScatter.html("Objectives: " + String(unnormalizeObjectives(("[" + objectivesDesign + "]").match(/\d+(?:\.\d+)?/g).map(Number), objectiveBounds)).split(',').join(', '))
-  .transition()
-  .duration(500)
+  let cxObjective = svgScatter.selectAll(".dot").
+  filter(function(){
+    return d3.select(this).attr("value") == idVal;
+  }).attr("cx");
+
+  let cyObjective = svgScatter.selectAll(".dot").
+  filter(function(){
+    return d3.select(this).attr("value") == idVal;
+  }).attr("cy");
+
+  tooltipScatter.html(String(unnormalizeObjectives([Number(objectivesDesignY1), Number(objectivesDesignY2)], objectiveBounds)).split(',').join(', '))
   .style("opacity", 1)
-  .style("left", (event.x) / 2 + "px")
-  .style("top", (event.y) / 2 + "px")
+  .style("left", cxObjective + "px")
+  .style("top", cyObjective - svgHeight + 40 + "px")
+  .style("visibility", "visible")
 }
 
 // Function to not highlight PCP line when not hovered over
@@ -446,8 +478,11 @@ const doNotHighlightPcp = function(event, d){
   d3.select("#scatter").selectAll(".dot")
     .transition()
     .duration(200).delay(100)
-    .style("opacity", 1)
+    .style("opacity", 0.8)
     .attr("r", 5)
+  
+  tooltipPcp.style("visibility", "hidden");
+  tooltipScatter.style("visibility", "hidden");
 }
 
 // Function to update design sliders when clicked on a particular design
@@ -644,14 +679,21 @@ const highlightScatter = function(event, d){
     .attr("r", 7)
   }
 
-  let objectivesDesign = d3.select(this).attr("objectives");
+  let objectivesDesignY1 = d3.select(this).attr("y1");
+
+  let objectivesDesignY2 = d3.select(this).attr("y2");
+
+  let cxObjective = d3.select(this).attr("cx");
+
+  let cyObjective = d3.select(this).attr("cy");
   
-  tooltipScatter.html("Objectives: " + String(unnormalizeObjectives(("[" + objectivesDesign + "]").match(/\d+(?:\.\d+)?/g).map(Number), objectiveBounds)).split(',').join(', '))
-    .transition()
-    .duration(500)
+  tooltipScatter.html(String(unnormalizeObjectives([Number(objectivesDesignY1), Number(objectivesDesignY2)], objectiveBounds)).split(',').join(', '))
+    // .transition()
+    // .duration(500)
     .style("opacity", 1)
-    .style("left", (event.x) / 2 + "px")
-    .style("top", (event.y) / 2 + "px")
+    .style("left", cxObjective + "px")
+    .style("top", cyObjective - svgHeight + 40 + "px")
+    .style("visibility", "visible")
 
   let idVal = d3.select(this).attr("value");
   
@@ -668,21 +710,22 @@ const highlightScatter = function(event, d){
     
     correspondingLine.raise();
 
-    tooltipPcp.html("Design Parameters: " + String(unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
-    .transition()
-    .duration(500)
+    tooltipPcp.html(String(unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
+    // .transition()
+    // .duration(500)
     .style("opacity", 1)
-    .style("left", (event.x) / 2 + "px")
-    .style("top", (event.y) / 2 + "px")
+    .style("left", 25 + "px")
+    .style("top", -25 + "px")
+    .style("visibility", "visible")
   }
-  else {
-    tooltipPcp.html("Design Parameters: ")
-    .transition()
-    .duration(500)
-    .style("opacity", 1)
-    .style("left", (event.x) / 2 + "px")
-    .style("top", (event.y) / 2 + "px")
-  }
+  // else {
+  //   tooltipPcp.html("Design Parameters: ")
+  //   .transition()
+  //   .duration(500)
+  //   .style("opacity", 1)
+  //   .style("left", (event.x) / 2 + "px")
+  //   .style("top", (event.y) / 2 + "px")
+  // }
 }
 
 const onClickScatter = function(event, d){
@@ -756,6 +799,9 @@ const doNotHighlightScatter = function(event, d){
     .filter(function(){
       return d3.select(this).attr("value") == "current";
   }).raise();
+
+  tooltipPcp.style("visibility", "hidden");
+  tooltipScatter.style("visibility", "hidden");
 }
 
 // Function to draw the scattered plots for the objective values of the evaluated designs
@@ -783,6 +829,8 @@ function drawScatter() {
         .attr("value", function (d) {return d.id;})
         .attr("class", function (d) { return "dot" } )
         .attr("objectives", function (d) {return [d.y1, d.y2]; })
+        .attr("y1", function(d) {return d.y1; })
+        .attr("y2", function(d) {return d.y2; })
         .attr("cx", function (d) { return x(0.5 * (Number(d.y1) + 1) * (objectiveBounds[0][1] - objectiveBounds[0][0]) + objectiveBounds[0][0]); } )
         .attr("cy", function (d) { return y(0.5 * (Number(d.y2) + 1) * (objectiveBounds[1][1] - objectiveBounds[1][0]) + objectiveBounds[1][0]); } )
         .attr("r", 5)
@@ -803,14 +851,16 @@ function drawScatter() {
     .attr("text-anchor", "end")
     .attr("x", width/2 + margin.left)
     .attr("y", height + margin.top + 20)
-    .text(objectiveNames[0]);
+    .text(objectiveNames[0])
+    .style("font-size", "10px");
 
   svgScatter.append("text")
     .attr("text-anchor", "end")
     .attr("transform", "rotate(-90)")
     .attr("y", -margin.left + 20)
     .attr("x", -margin.top - height/2 + 20)
-    .text(objectiveNames[1]);
+    .text(objectiveNames[1])
+    .style("font-size", "10px");
 
   // Function to draw the Pareto front
   var dominatingSet = getDominatingSet(evaluatedDesigns);
@@ -869,6 +919,8 @@ function drawHeuristicPoint(){
         .attr("id", "pilot-point")
         .attr("objectives", function (d) {return [d.y1, d.y2]; })
         .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+        .attr("y1", function(d) {return d.y1; })
+        .attr("y2", function(d) {return d.y2; })
         .attr("cx", function (d) { return x(0.5 * (Number(d.y1) + 1) * (objectiveBounds[0][1] - objectiveBounds[0][0]) + objectiveBounds[0][0]); } )
         .attr("cy", function (d) { return y(0.5 * (Number(d.y2) + 1) * (objectiveBounds[1][1] - objectiveBounds[1][0]) + objectiveBounds[1][0]); } )
         .attr("r", 5)
@@ -1828,7 +1880,7 @@ function runFormalTest() {
 
   getTestResult(paramVals, TestType.FORMAL);
 
-  var waitTime = 40; //s, this should be the same as in the python script
+  var waitTime = 30; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
   const progressInterval = setInterval(function () {
@@ -1895,6 +1947,8 @@ function getTestResult(paramVals, testType) {
 
           moboUsed = false;
         }
+
+        console.log(evaluatedDesigns);
 
         drawPcp();
         drawScatter();
@@ -2110,6 +2164,7 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
   });
 }
 
+// Function to finish the experiment
 function finishExperiment(){
   var sureFinished = confirm("Are you sure you want to finish?");
   if (sureFinished){
@@ -2131,3 +2186,47 @@ function finishExperiment(){
   }
 }
 
+// Add recent to note table
+function addRecentTable(){
+  var htmlNewRow = ""
+  htmlNewRow += "<tr>"
+  htmlNewRow += "<td contenteditable='true' class='record-data'>Heuristic</td>"
+  htmlNewRow += "<td contenteditable='true' class='record-data'>[0, 0, 0, 0, 0]</td>"
+  htmlNewRow += "<td contenteditable='true' class='record-data'>[0, 0]</td>"
+  htmlNewRow += "<td contenteditable='true' class='record-data'>Hello</td>"
+  htmlNewRow += "<td><button class='record-show'> Show </button> <button class='record-delete'> Delete </button><button class='record-up'> Up </button><button class='record-down'> Down </button></td>"
+  htmlNewRow += "</tr>"
+  $("#record-note-table", window.parent.task.document).append(htmlNewRow);  
+}
+
+// Delete row of note table
+function deleteRowRecentTable(){
+  $(this).parents('tr').remove();
+}
+
+// Move row of table up
+function moveRowTableUp(){
+  var $row = $(this).parents('tr');
+  if ($row.index() == 0) return;
+  $row.prev().before($row.get(0));
+}
+
+// Move row of table down
+function moveRowTableDown(){
+  var $row = $(this).parents('tr');
+  $row.next().after($row.get(0));
+}
+
+// Display point in table in the figures
+function showPointTable(){
+  var rowEntries = [];
+  
+  var $row = $(this).closest("tr");
+  var $tds = $row.find("td");
+
+  $.each($tds, function() {
+    rowEntries.push($(this).text);
+  });
+
+  console.log(rowEntries);
+}
