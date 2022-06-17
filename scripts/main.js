@@ -93,9 +93,10 @@ async function renderMoboInterface() {
 
   $("#add-record-button", window.parent.task.document).click(addRecentTable);
   $(window.parent.task.document).on('click', ".record-delete", deleteRowRecentTable);
-  $(window)
+  $(window.parent.task.document).on('click', ".record-show", showPointTable);
   $(window.parent.task.document).on('click', ".record-up", moveRowTableUp);
   $(window.parent.task.document).on('click', ".record-down", moveRowTableDown);
+  $("#clear-show-button", window.parent.task.document).click(clearTableShow);
 
   if (conditionID == ConditionType.HYBRID){
     renderRegionPlot = drawRegionPlot();
@@ -911,6 +912,8 @@ function drawHeuristicPoint(){
   const y = d3.scaleLinear()
     .domain(objectiveBounds[1])
     .range([ height, 0]);
+
+  // console.log(pilotTestResults);
 
   svgScatter.append('g')
     .selectAll("dot")
@@ -1830,7 +1833,7 @@ function runPilotTest() {
   document.querySelectorAll("slider").disabled = true;
 
   var paramVals = [];
-  var inputSliders = document.querySelectorAll(".slider");
+  var inputSliders = document.querySelectorAll(".slider:not(#confidence-slider)");
   
   console.log(inputSliders);
 
@@ -1868,7 +1871,7 @@ function runFormalTest() {
   document.getElementById("evaluation-button").disabled = true;
 
   var paramVals = [];
-  var inputSliders = document.querySelectorAll(".slider");
+  var inputSliders = document.querySelectorAll(".slider:not(#confidence-slider)");
 
   for (var i = 0; i < inputSliders.length; i++){
     inputSliders[i].disabled = true;
@@ -1971,6 +1974,15 @@ function getTestResult(paramVals, testType) {
                               y1: parseFloat(objValsNorm[0]).toFixed(2),
                               y2: parseFloat(objValsNorm[1]).toFixed(2)}];
           drawHeuristicPoint();
+        }
+        mostRecentDesign = paramVals;
+        mostRecentObjectives = objVals;
+
+        if (testType == TestType.PILOT){
+          mostRecentType = 'pilot';
+        }
+        else {
+          mostRecentType = 'formal';
         }
       },
       error: function(result){
@@ -2188,14 +2200,56 @@ function finishExperiment(){
 
 // Add recent to note table
 function addRecentTable(){
+  // var formalChecked = $("#heuristic-formal-check", window.parent.task.document).prop("checked");
+
+  var formalChecked;
+  if (mostRecentType == 'pilot'){
+    formalChecked = false; 
+  }
+  else if (mostRecentType == 'formal'){
+    formalChecked = true;
+  }
+
+  console.log(formalChecked);
+  console.log(String(mostRecentDesign));
+  console.log(String(mostRecentObjectives));
+
   var htmlNewRow = ""
   htmlNewRow += "<tr>"
-  htmlNewRow += "<td contenteditable='true' class='record-data'>Heuristic</td>"
-  htmlNewRow += "<td contenteditable='true' class='record-data'>[0, 0, 0, 0, 0]</td>"
-  htmlNewRow += "<td contenteditable='true' class='record-data'>[0, 0]</td>"
-  htmlNewRow += "<td contenteditable='true' class='record-data'>Hello</td>"
-  htmlNewRow += "<td><button class='record-show'> Show </button> <button class='record-delete'> Delete </button><button class='record-up'> Up </button><button class='record-down'> Down </button></td>"
-  htmlNewRow += "</tr>"
+  if (formalChecked == true){
+    htmlNewRow += "<td class='record-data' id='record-data-heuristic'>Formal</td>"
+  }
+  else if (formalChecked == false) {
+    htmlNewRow += "<td class='record-data' id='record-data-heuristic'>Heuristic</td>"
+  }
+  else {
+    htmlNewRow += "<td class='record-data' id='record-data-heuristic'></td>"
+  }
+
+  if (mostRecentDesign === undefined){
+    htmlNewRow += "<td class='record-data' id='record-data-design'></td>"
+  }
+  else {
+    var stringDesign = String(mostRecentDesign);
+    htmlNewRow += "<td class='record-data' id='record-data-design'>" + stringDesign + "</td>"
+  }
+  
+  if (mostRecentObjectives === undefined){
+    htmlNewRow += "<td class='record-data' id='record-data-objective'></td>"
+  }
+  else {
+    var stringObjectives = String(mostRecentObjectives);
+    htmlNewRow += "<td class='record-data' id='record-data-objective'>" + stringObjectives + "</td>"
+  }
+  
+  htmlNewRow += "<td contenteditable='true' class='record-data' id='record-data-note'></td>"
+  htmlNewRow += "<td id='record-data-buttons'><button class='record-show' id='record-show'><img src='./images/interface/search.png'></button>"
+  htmlNewRow += "<button class='record-delete' id='record-delete'><img src='./images/interface/delete.png'></button>"
+  htmlNewRow += "<span style='display: inline-block; width: 20px; height: 15px;'>"
+  htmlNewRow += "<button class='record-up' id='record-up'><i class='arrow up'></i></button>"
+  htmlNewRow += "<button class='record-down' id='record-down'><i class='arrow down'></i></button>"
+  htmlNewRow += "</span>"
+  htmlNewRow += "</td></tr>"
   $("#record-note-table", window.parent.task.document).append(htmlNewRow);  
 }
 
@@ -2225,8 +2279,116 @@ function showPointTable(){
   var $tds = $row.find("td");
 
   $.each($tds, function() {
-    rowEntries.push($(this).text);
+    rowEntries.push($(this).text());
   });
+  rowEntries.pop();
 
-  console.log(rowEntries);
+  var designParameters = normalizeParameters(rowEntries[1].split(",").map(Number), parameterBounds);
+  var objectiveValues = normalizeObjectives(rowEntries[2].split(",").map(Number), objectiveBounds);
+
+  // Check all values are valid
+  var designParamValid = true;
+  var objectiveValValid = true;
+
+  for (var i = 0; i < numParams; i++){
+    if (isNaN(parseFloat(designParameters[i]))){
+      designParamValid = false;
+    }
+    else {
+      if (designParameters[i] < 0|| designParameters[i] > 1){
+        designParamValid = false;
+      }    
+    }
+  }
+
+  for (var i = 0; i < numObjs; i++){
+    if (isNaN(parseFloat(objectiveValues[i]))){
+      console.log("hi");
+      objectiveValValid = false;
+    }
+    else {
+      if (objectiveValues[i] < -1|| objectiveValues[i] > 1){
+        objectiveValValid = false;
+      }
+    }
+  }
+
+  console.log(designParamValid);
+  console.log(objectiveValValid);
+
+  if (designParamValid && objectiveValValid){
+    drawTableLine(designParameters);
+    drawTablePoint(objectiveValues);
+  }
+}
+
+// Plot table note line on PCP plot
+function drawTableLine(designParameters) {
+  d3.selectAll(".line").filter(function(){
+    return d3.select(this).attr("value") == "table-line";
+  }).remove();
+
+  var designParamParsed = [{id: "table-line",
+                              x1: designParameters[0],
+                              x2: designParameters[1],
+                              x3: designParameters[2],
+                              x4: designParameters[3],
+                              x5: designParameters[4]}];
+
+  svgPcp
+    .selectAll("myPath")
+    .data(designParamParsed).enter()
+    .append("path")
+    // .join("path")
+      .attr("class", function (d) { return "line"; } ) // 2 class for each line: 'line' and the group name
+      .attr("d", function(d) { return pathPcp(d);})
+      .attr("value", function (d) {return d.id; })
+      .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+      .style("fill", "none" )
+      .style("stroke", function(d){ return("green")} )
+      .style("opacity", 1.0)
+      .style("stroke-width", "2")
+      .style("stroke-dasharray", ("3, 3"))
+}
+
+// Plot table note point on scatter plot
+function drawTablePoint(objectiveVals){
+  d3.selectAll("#table-point").remove();
+
+  var objectiveValsParsed = [{id: "table-point",
+                              y1: objectiveVals[0],
+                              y2: objectiveVals[1]}]
+
+                          
+  const x = d3.scaleLinear()
+    .domain(objectiveBounds[0])
+    .range([ 0, width ]);
+  
+  const y = d3.scaleLinear()
+    .domain(objectiveBounds[1])
+    .range([ height, 0]);
+
+  // console.log(pilotTestResults);
+
+  svgScatter.selectAll("dot")
+    .data(objectiveValsParsed).enter()
+    .append("circle")
+        .attr("id", "table-point")
+        .attr("objectives", function (d) {return [d.y1, d.y2]; })
+        .attr("y1", function(d) {return d.y1; })
+        .attr("y2", function(d) {return d.y2; })
+        .attr("cx", function (d) { return x(0.5 * (Number(d.y1) + 1) * (objectiveBounds[0][1] - objectiveBounds[0][0]) + objectiveBounds[0][0]); } )
+        .attr("cy", function (d) { return y(0.5 * (Number(d.y2) + 1) * (objectiveBounds[1][1] - objectiveBounds[1][0]) + objectiveBounds[1][0]); } )
+        .attr("r", 7)
+        .style("fill", "green")
+}
+
+// Clear show from table
+function clearTableShow(){
+  console.log("hello");
+  d3.selectAll(".line").filter(function(){
+    return d3.select(this).attr("value") == "table-line";
+  }).remove();
+
+  d3.selectAll("#table-point").remove();
 }

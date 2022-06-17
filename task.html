@@ -13,36 +13,39 @@
         <!-- <iframe src="design.html" class="design-window" name="design"></iframe> -->
         <iframe src="stack-overflow-clone.html" class="design-window" name="design"></iframe>
     </div>
-    <!-- <div id="record-table" style="text-align: center;">
+    <div id="record-table" style="text-align: center;">
         <table id="record-note-table" class="record-note" width="100%">
             <thead>  
                 <tr>  
-                  <th> Type </th>  
-                  <th> Design </th>  
-                  <th> Objectives </th>  
-                  <th> Note </th>
+                  <th id='record-data-heuristic'> Type </th>  
+                  <th id='record-data-design'> Design </th>  
+                  <th id='record-data-objective'> Objectives </th>  
+                  <th id='record-data-note'> Note </th>
                   <th></th>
                 </tr>  
             </thead>  
             <tbody>
-                <tr>
+                <!-- <tr>
                     <td contenteditable="true" class="record-data">Heuristic</td>
-                    <td contenteditable="true" class="record-data">[0, 0, 0, 0, 0]</td>
-                    <td contenteditable="true" class="record-data">[0, 0]</td>
+                    <td contenteditable="true" class="record-data">0, 0, 0, 0, 0</td>
+                    <td contenteditable="true" class="record-data">0, 0</td>
                     <td contenteditable="true" class="record-data">Hello</td>
                     <td>
-                        <button class="record-show"> Show </button>  
-                        <button class="record-delete"> Delete </button>  
-                        <button class="record-up"> Up </button>
-                        <button class="record-down"> Down </button>
+                        <button class="record-show" id="record-show"> <img src="./images/interface/search.png"> </button>  
+                        <button class="record-delete" id="record-delete"> <img src="./images/interface/delete.png"> </button>  
+                        <span style="display: inline-block; width: 20px; height: 15px; ">
+                            <button class="record-up" id="record-up"><i class="arrow up"></i></button>
+                            <button class="record-down" id="record-down"><i class="arrow down"></i></button>
+                        </span>
                     </td>
-                </tr>
+                </tr> -->
             </tbody>
         </table>
-        <button id="add-record-button">Add Recent</button>
-        <input type="checkbox" id="heuristic-formal-check">Formal?</input>
-        <br></br>
-        <button id="clear-show-button">Clear</button>
-    </div> -->
+        <div>
+            <button class="button" id="add-record-button">Add Recent</button>
+            <!-- <input type="checkbox" id="heuristic-formal-check">Formal?</input> -->
+            <button class="button" id="clear-show-button">Clear</button>
+        </div>
+    </div>
 </body>
 </html>

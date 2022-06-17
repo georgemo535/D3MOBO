@@ -241,15 +241,89 @@ h2 {
 }
 
 #record-table {
-    width:500px;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 11px;
   }
 
 #record-table th {
     font-size: 11px;
+    border-bottom: 1px solid #ddd;
+    border-spacing: 0px; 
 }
 
+
 #record-table td {
-    width: 100px;
-    border:1px solid black;
+    /* width: 100px; */
+    /* border:1px solid black; */
     font-size: 11px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    border-spacing: 0px; 
+}
+
+#record-data-heuristic {
+    width: 10%;
+}
+
+#record-data-design {
+    width: 20%;
+}
+
+#record-data-objective {
+    width: 15%;
+}
+
+#record-data-note {
+    width: 40%;
+}
+
+#record-data-buttons {
+    width: 15%;
+}
+
+#record-show, #record-up, #record-down, #record-delete {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 2px;
+  }
+
+#record-show img {
+    width: 20px;
+    height: 20px;
+    object-fit: cover;
+  }
+
+#record-delete img {
+    width: 20px;
+    height: 20px;
+    object-fit: cover;
+} 
+
+.arrow {
+    border: solid black;
+    border-width: 0 2px 2px 0;
+    display: inline-block;
+    padding: 3px;
+}
+
+.right {
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+}
+
+.left {
+    transform: rotate(135deg);
+    -webkit-transform: rotate(135deg);
+}
+
+.up {
+    transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+}
+
+.down {
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
 }
