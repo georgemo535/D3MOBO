@@ -88,13 +88,21 @@ output {
     background: green;
 }
 
+#param-sliders {
+    margin: auto;
+    align-items: center;
+}
+
 
 #regionslist option{
     width:50px;   
    }
 
-.slidecontainer {
+#param-sliders {
     width: 100%; /* Width of the outside container */
+    /* margin-left: auto !important;
+    margin-right: auto !important; */
+    margin: 0 auto;
   }
   
 .slider {
@@ -107,8 +115,10 @@ output {
     opacity: 0.7;
     -webkit-transition: .2s;
     transition: opacity .2s;
-    margin: auto;
-    margin: 5px 5px 5px 5px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    align-items: center;
+    /* margin: 5px 5px 5px 5px; */
 }
 
 .slider::-webkit-slider-thumb {

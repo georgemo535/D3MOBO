@@ -9,6 +9,7 @@ var numSubdivisions = 2;
 var renderRegionPlot;
 var regionData;
 var evaluatedDesigns;
+var heuristicDesigns;
 var forbidRangeData;
 var pilotTestResults;
 
@@ -27,6 +28,10 @@ var designLineData;
 var moboUsed = false;
 var progressBarFinished = false;
 var numberMOBOUsed = 0;
+
+// Time variables
+var timeFinishDisabled = 15;
+var timeFinishTask = 20;
 
 const ConditionType = {
   HYBRID: 0,
@@ -47,11 +52,11 @@ const ApplicationParams = {
             ybounds: [[0, 20], [0, 5]]},
   1: {parameters: ["Categories", "Refresh", "Preview", "Tags", "Activity Rating"],
             xbounds: [[5, 50], [0, 1000], [0, 500], [1, 10], [0, 5]],
-            objectives: ["Answering Time", "Percentage Answered"],
+            objectives: ["Answering Rate", "Percentage Answered"],
             ybounds: [[0, 2], [0, 100]]},
   2: {parameters: ["Transparency", "Distance", "Icon Size", "Box Size", "Text Size"],
             xbounds: [[0.5, 1], [5, 50], [1, 10], [10, 50], [10, 30]],
-            objectives: ["Time", "Accuracy"],
+            objectives: ["Speed", "Accuracy"],
             ybounds: [[0, 100], [0, 100]]}
 }
 
@@ -83,6 +88,7 @@ async function renderMoboInterface() {
 
   regionData = [];
   evaluatedDesigns = [];
+  heuristicDesigns = [];
   forbidRangeData = [];
 
   constructParameterSlider();
@@ -90,13 +96,27 @@ async function renderMoboInterface() {
   drawScatter();
 
   document.getElementById("finish-button").addEventListener("click", finishExperiment);
+  document.getElementById("heuristic-checkbox").addEventListener("click", plotHeuristicData);
 
-  $("#add-record-button", window.parent.task.document).click(addRecentTable);
-  $(window.parent.task.document).on('click', ".record-delete", deleteRowRecentTable);
-  $(window.parent.task.document).on('click', ".record-show", showPointTable);
-  $(window.parent.task.document).on('click', ".record-up", moveRowTableUp);
-  $(window.parent.task.document).on('click', ".record-down", moveRowTableDown);
-  $("#clear-show-button", window.parent.task.document).click(clearTableShow);
+  document.getElementById("finish-button").disabled = true;
+  setTimeout(() => {
+    document.getElementById("finish-button").disabled = false;}
+    , 1000 * 60 * timeFinishDisabled);
+  
+
+  setTimeout(
+    function(){
+      alert("20 minutes have passed, please finish the task.");
+      }
+    , 1000 * 60 * timeFinishTask /// milliseconds = 10 seconds
+  );
+
+  // $("#add-record-button", window.parent.task.document).click(addRecentTable);
+  // $(window.parent.task.document).on('click', ".record-delete", deleteRowRecentTable);
+  // $(window.parent.task.document).on('click', ".record-show", showPointTable);
+  // $(window.parent.task.document).on('click', ".record-up", moveRowTableUp);
+  // $(window.parent.task.document).on('click', ".record-down", moveRowTableDown);
+  // $("#clear-show-button", window.parent.task.document).click(clearTableShow);
 
   if (conditionID == ConditionType.HYBRID){
     renderRegionPlot = drawRegionPlot();
@@ -214,7 +234,7 @@ function constructParameterSlider() {
   console.log("Loading sliders")
 
   for (var i = 0; i < numParams; i++){
-      var divStart = "<div>"
+      var divStart = "<div id='slider-container>"
       var labelTxt = "<label for='param" + (i+1) + "slider'>" + parameterNames[i] + "</label>"
       var inputTxt = "<input type='range' min=" + parameterBounds[i][0] + " max=" + parameterBounds[i][1] + " value='" + parameterBounds[i][0] + "' step='0.01' class='slider'"
       + " id=" + "'param" + (i+1) + "slider'" + " name=" + "'param" + (i+1) + "'" + " oninput='this.nextElementSibling.value = this.value'>";
@@ -530,6 +550,11 @@ const onClickDesign = function(event, d){
   }
 
   drawGuidingLine();
+
+  for (var i = 0; i < numParams; i++){
+    document.getElementById('param' + (i+1) + 'slider').dispatchEvent(new Event('input'));
+    console.log("Hello");
+  }
 }
 
 // Function to parse data point in right way to input into the PCP
@@ -578,12 +603,12 @@ function drawPcp() {
       .on("mouseout", doNotHighlightPcp)
       .on("click", onClickDesign)
   
-    var maxPointID = evaluatedDesigns.length;
-    d3.select("#pcp").selectAll(".line")
-      .filter(function(){
-        return d3.select(this).attr("value") == String(maxPointID);
-      })
-      .style("stroke", "orange")
+  var maxPointID = evaluatedDesigns.length;
+  d3.select("#pcp").selectAll(".line")
+    .filter(function(){
+      return d3.select(this).attr("value") == String(maxPointID);
+    })
+    .style("stroke", "orange")
 
   svgPcp.selectAll("myAxis")
     .data(dimensionsPcp).enter()
@@ -597,6 +622,32 @@ function drawPcp() {
         .text(function(d) { return d; })
         .style("fill", "black")
   
+
+  if (document.getElementById("heuristic-checkbox").checked){
+    svgPcp.selectAll("myPath")
+      .data(heuristicDesigns).enter()
+      .append("path")
+        .attr("class", function(d){ return "line"; })
+        .attr("d", d => pathPcp(d))
+        .attr("value", function (d) {return d.id; })
+        .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+        .style("fill", "none" )
+        .style("stroke", function(d){ return( "green")} )
+        .style("opacity", 0.8)
+        .style("stroke-width", "2")
+        .style("stroke-dasharray", ("3, 3"))
+        .on("mouseover", highlightPcp)
+        .on("mouseout", doNotHighlightPcp)
+        .on("click", onClickDesign)
+
+    var maxID = heuristicDesigns.length;
+    d3.select("#pcp").selectAll(".line")
+      .filter(function(){
+        return d3.select(this).attr("value") == String(-maxID);
+      })
+      .style("stroke", "purple")
+  }
+
   svgPcp
   .selectAll("myPath")
   .data(designLineData).enter()
@@ -654,6 +705,8 @@ const drawGuidingLine = function(event){
   for (var i = 0; i < numParams; i++){
     document.getElementById('param' + (i+1) + 'output').innerHTML = document.getElementById('param' + (i+1) + 'slider').value;
   }
+
+  document.getElementById("evaluation-button").disabled = false;
 }
 
 // Function to highlight scattered point when hovered over
@@ -672,13 +725,43 @@ const highlightScatter = function(event, d){
     // .style("stroke", "lightgrey")
     .style("opacity", "0.2")
   
-  if (d3.select(this).attr("id") != "pilot-point"){
-    d3.select(this)
+  d3.select(this)
     .transition()
     .duration(200)
     .style("opacity", 0.8)
     .attr("r", 7)
-  }
+
+  // if (d3.select(this).attr("id") == "pilot-point" && document.getElementById("heuristic-checkbox").checked){
+  //   var maxID = heuristicDesigns.length;
+  //   var pilotPointCorresponding = svgScatter.selectAll(".dot").filter(function() {
+  //     return d3.select(this).attr("value") == -maxID;
+  //   })
+  //   pilotPointCorresponding
+  //     .transition()
+  //     .duration(200)
+  //     .style("opacity", 0.8)
+  //     .attr("r", 7)
+
+  //   var correspondingLine = svgPcp.selectAll(".line").filter(function() {
+  //     return d3.select(this).attr("value") == maxID;
+  //   })
+  
+  //   correspondingLine
+  //     .transition().duration(200)
+  //     // .style("stroke", "green")
+  //     .style("opacity", 0.8)
+  //     .style("stroke-width", "4");
+    
+  //   correspondingLine.raise();
+
+  //   tooltipPcp.html(String(unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
+  //   // .transition()
+  //   // .duration(500)
+  //   .style("opacity", 1)
+  //   .style("left", 25 + "px")
+  //   .style("top", -25 + "px")
+  //   .style("visibility", "visible")
+  // }
 
   let objectivesDesignY1 = d3.select(this).attr("y1");
 
@@ -698,27 +781,26 @@ const highlightScatter = function(event, d){
 
   let idVal = d3.select(this).attr("value");
   
-  if (d3.select(this).attr("id") != "pilot-point"){
-    var correspondingLine = svgPcp.selectAll(".line").filter(function() {
-      return d3.select(this).attr("value") == idVal
-    })
-  
-    correspondingLine
-      .transition().duration(200)
-      // .style("stroke", "green")
-      .style("opacity", 0.8)
-      .style("stroke-width", "4");
-    
-    correspondingLine.raise();
+  var correspondingLine = svgPcp.selectAll(".line").filter(function() {
+    return d3.select(this).attr("value") == idVal
+  })
 
-    tooltipPcp.html(String(unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
-    // .transition()
-    // .duration(500)
-    .style("opacity", 1)
-    .style("left", 25 + "px")
-    .style("top", -25 + "px")
-    .style("visibility", "visible")
-  }
+  correspondingLine
+    .transition().duration(200)
+    // .style("stroke", "green")
+    .style("opacity", 0.8)
+    .style("stroke-width", "4");
+  
+  correspondingLine.raise();
+
+  tooltipPcp.html(String(unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
+  // .transition()
+  // .duration(500)
+  .style("opacity", 1)
+  .style("left", 25 + "px")
+  .style("top", -25 + "px")
+  .style("visibility", "visible")
+  
   // else {
   //   tooltipPcp.html("Design Parameters: ")
   //   .transition()
@@ -777,6 +859,11 @@ const onClickScatter = function(event, d){
   }
 
   drawGuidingLine();
+
+  for (var i = 0; i < numParams; i++){
+    document.getElementById('param' + (i+1) + 'slider').dispatchEvent(new Event('input'));
+    // console.log("Hello");
+  }
 }
 
 // Function to not highlight scattered points when not hovered over
@@ -862,6 +949,34 @@ function drawScatter() {
     .attr("x", -margin.top - height/2 + 20)
     .text(objectiveNames[1])
     .style("font-size", "10px");
+  
+  if (document.getElementById("heuristic-checkbox").checked){
+    svgScatter.append('g')
+      .selectAll("dot")
+      .data(heuristicDesigns).enter()
+      .append("circle")
+          .attr("value", function (d) {return d.id;})
+          .attr("class", function (d) { return "dot" } )
+          .attr("objectives", function (d) {return [d.y1, d.y2]; })
+          .attr("y1", function(d) {return d.y1; })
+          .attr("y2", function(d) {return d.y2; })
+          .attr("cx", function (d) { return x(0.5 * (Number(d.y1) + 1) * (objectiveBounds[0][1] - objectiveBounds[0][0]) + objectiveBounds[0][0]); } )
+          .attr("cy", function (d) { return y(0.5 * (Number(d.y2) + 1) * (objectiveBounds[1][1] - objectiveBounds[1][0]) + objectiveBounds[1][0]); } )
+          .attr("r", 5)
+          .style("fill", "#d3d3d3")
+          .style("stroke", "green")
+          .style("opacity", 0.8)
+      .on("mouseover", highlightScatter)
+      .on("mouseleave", doNotHighlightScatter)
+      .on("click", onClickScatter)
+
+    var maxID = heuristicDesigns.length;
+    d3.select("#scatter").selectAll(".dot")
+      .filter(function(){
+        return d3.select(this).attr("value") == String(-maxID);
+      })
+      .style("stroke", "purple")
+  }
 
   // Function to draw the Pareto front
   var dominatingSet = getDominatingSet(evaluatedDesigns);
@@ -887,7 +1002,7 @@ function drawScatter() {
       .attr("class", function (d) { return "line"; } ) // 2 class for each line: 'line' and the group name
       .attr("d", function(d) { return drawParetoFront(d);})
       .style("fill", "none" )
-      .style("stroke", function(d){ return( "red")} )
+      .style("stroke", function(d){ return( "#0492C2")} )
       .style("opacity", 1.0)
       .style("stroke-width", "2")
   }
@@ -926,7 +1041,7 @@ function drawHeuristicPoint(){
         .attr("y2", function(d) {return d.y2; })
         .attr("cx", function (d) { return x(0.5 * (Number(d.y1) + 1) * (objectiveBounds[0][1] - objectiveBounds[0][0]) + objectiveBounds[0][0]); } )
         .attr("cy", function (d) { return y(0.5 * (Number(d.y2) + 1) * (objectiveBounds[1][1] - objectiveBounds[1][0]) + objectiveBounds[1][0]); } )
-        .attr("r", 5)
+        .attr("r", 3)
         .style("fill", "purple")
         .on("mouseover", highlightScatter)
         .on("mouseleave", doNotHighlightScatter)
@@ -969,6 +1084,11 @@ function getDominatingSet(evaluatedDesigns){
     }
   }
   return dominatingSet;
+}
+
+function plotHeuristicData(){
+  drawPcp();
+  drawScatter();
 }
 
 // Function to highlight forbidden region area when hovered over
@@ -1847,7 +1967,7 @@ function runPilotTest() {
 
   getTestResult(paramVals, TestType.PILOT);
 
-  var waitTime = 5; //s, this should be the same as in the python script
+  var waitTime = 3; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
   const progressInterval = setInterval(function () {
@@ -1883,7 +2003,7 @@ function runFormalTest() {
 
   getTestResult(paramVals, TestType.FORMAL);
 
-  var waitTime = 30; //s, this should be the same as in the python script
+  var waitTime = 20; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
   const progressInterval = setInterval(function () {
@@ -1949,12 +2069,11 @@ function getTestResult(paramVals, testType) {
           moboBar.set(moboUsedResult);
 
           moboUsed = false;
+
+          document.getElementById("evaluation-button").disabled = true;
         }
 
         console.log(evaluatedDesigns);
-
-        drawPcp();
-        drawScatter();
 
         var inputSliders = document.querySelectorAll(".slider");
 
@@ -1973,8 +2092,24 @@ function getTestResult(paramVals, testType) {
                               x5: parseFloat(paramValsNorm[4]).toFixed(2),
                               y1: parseFloat(objValsNorm[0]).toFixed(2),
                               y2: parseFloat(objValsNorm[1]).toFixed(2)}];
-          drawHeuristicPoint();
+          // drawHeuristicPoint();
+
+          var maxID = heuristicDesigns.length;
+          var newDesignData = {id: -maxID-1,
+                              x1: parseFloat(paramValsNorm[0]).toFixed(2),
+                              x2: parseFloat(paramValsNorm[1]).toFixed(2),
+                              x3: parseFloat(paramValsNorm[2]).toFixed(2),
+                              x4: parseFloat(paramValsNorm[3]).toFixed(2),
+                              x5: parseFloat(paramValsNorm[4]).toFixed(2),
+                              y1: parseFloat(objValsNorm[0]).toFixed(2),
+                              y2: parseFloat(objValsNorm[1]).toFixed(2)}
+          heuristicDesigns.push(newDesignData);
+
+          console.log(heuristicDesigns);
         }
+        drawPcp();
+        drawScatter();
+
         mostRecentDesign = paramVals;
         mostRecentObjectives = objVals;
 

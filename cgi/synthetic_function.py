@@ -13,7 +13,7 @@ def objective_function(X, weights, centers, biases, noise):
         final.append([first, second])
     return torch.tensor(final, dtype=torch.float64)
 
-def pilot_test_function(X, weights, centers, biases, noise=0.4):
+def pilot_test_function(X, weights, centers, biases, noise=0.25):
     return objective_function(X, weights, centers, biases, noise=noise)
 
 def formal_evaluation_function(X, weights, centers, biases, noise=0.05):

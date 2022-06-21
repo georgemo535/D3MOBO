@@ -60,7 +60,7 @@
             var conditionID = localStorage.getItem("exp-condition");
             var applicationID = localStorage.getItem("app");
 
-            var instructionHeadingText = "In this task, you will be trying to find the design parameter configuration that provides the optimal tradeoff between two competing objectives within 30 minutes."
+            var instructionHeadingText = "Imagine that you are a designer for an application produced by a tech company. In this task, you will be trying to find the design parameter configuration that provides the optimal tradeoff between two competing objectives within 30 minutes."
             instructionHeadingText += "<br></br>"
 
             var applicationText;
@@ -73,13 +73,13 @@
                 applicationText += "<br></br>"
                 applicationText += "\n 1. <b>Ads</b> - the advertisement density in the page, ranging from 0 to 1."
                 applicationText += "<br></br>"
-                applicationText += "\n 2. <b>Notification</b> - the notification rate on a phone, ranging from every 0 hours to every 2 hours on average."
+                applicationText += "\n 2. <b>Notification</b> - the notification frequency on a phone, ranging from every 0 to 2 notifications each hour."
                 applicationText += "<br></br>"
                 applicationText += "\n 3. <b>Personalization</b> - the personalization rate on the content shown, ranging from 0 to 1."
                 applicationText += "<br></br>"
                 applicationText += "\n 4. <b>Moderation</b> - the moderation rate of the app by community moderators, ranging from 0 to 1."
                 applicationText += "<br></br>"
-                applicationText += "\n 5. <b>Refresh</b> - the refresh rate of the content, ranging from 0 to 20 minutes."
+                applicationText += "\n 5. <b>Refresh</b> - the refresh time of the content, ranging from 0 to 20 minutes."
                 applicationText += "<br></br>"
 
                 applicationText += "<b>Objectives</b>"
@@ -101,7 +101,7 @@
                 applicationText += "<br></br>"
                 applicationText += "\n 1. <b>Categories</b> - the number of question categories, ranging from 5 to 50."
                 applicationText += "<br></br>"
-                applicationText += "\n 2. <b>Refresh</b> - the refresh rate of the content, ranging from 0 to 1000 seconds."
+                applicationText += "\n 2. <b>Refresh</b> - the refresh time of the content, ranging from 0 to 1000 seconds."
                 applicationText += "<br></br>"
                 applicationText += "\n 3. <b>Preview</b> - the length of the question preview shown in the forum listings, ranging from 0 to 500 characters."
                 applicationText += "<br></br>"
@@ -115,7 +115,7 @@
 
                 applicationText += "\n The two objectives are as follows: "
                 applicationText += "<br></br>"
-                applicationText += "\n 1. The average <b>answering rate</b> for a new question appropriately - from 0 to 2."
+                applicationText += "\n 1. The average <b>answering rate</b> of new questions that were done appropriately - from 0 questions to 2 questions per minute."
                 applicationText += "<br></br>"
                 applicationText += "\n 2. The <b>percentage of questions answered</b> appropriately - from 0 to 100 percent."
                 applicationText += "<br></br>"
@@ -143,7 +143,7 @@
 
                 applicationText += "\n The two objectives are as follows: "
                 applicationText += "<br></br>"
-                applicationText += "\n 1. The <b>average rate</b> for a user to find all restaurants in an area with a certain description - from 0 to 2."
+                applicationText += "\n 1. The <b>average speed</b> for a user to find all restaurants in an area with a certain description - from 0 restaurants to 2 restaurants per minute."
                 applicationText += "<br></br>"
                 applicationText += "\n 2. The <b>accuracy</b> of a user in finding all restaurants in an area with a certain description  - from 0 to 100 percent."
                 applicationText += "<br></br>"
@@ -168,9 +168,9 @@
 
                 conditionText += "\n To simulate the real design process of pilot testing and formal evaluations, you have two ways of evaluating a design:"
                 conditionText += "<br></br>"
-                conditionText += "\n 1. Performing a <b>Formal Evaluation</b>: This gives a quite accurate result, but will take 40 seconds."
+                conditionText += "\n 1. Performing a <b>Formal Evaluation</b>: This gives a quite accurate result, but will take 20 seconds."
                 conditionText += "<br></br>"
-                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives quite an inaccurate result, but will take 5 seconds."
+                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives a less accurate result, but will take 4 seconds."
                 conditionText += "<br></br>"
             }
             if (conditionID == ConditionType.DESIGNER){
@@ -183,9 +183,9 @@
 
                 conditionText += "\n To simulate the real design process of pilot testing and formal evaluations, you have two ways of evaluating a design:"
                 conditionText += "<br></br>"
-                conditionText += "\n 1. Performing a <b>Formal Evaluation</b>: This gives a quite accurate result, but will take 40 seconds."
+                conditionText += "\n 1. Performing a <b>Formal Evaluation</b>: This gives a quite accurate result, but will take 20 seconds."
                 conditionText += "<br></br>"
-                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives quite an inaccurate result, but will take 5 seconds."
+                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives a less accurate result, but will take 4 seconds."
                 conditionText += "<br></br>"
             }
             if (conditionID == ConditionType.MOBO){
@@ -198,7 +198,7 @@
 
                 conditionText += "\n You will only have the following option to evaluate a design:"
                 conditionText += "<br></br>"
-                conditionText += "\n 1. <b>Performing a Formal Evaluation</b>: This gives a quite accurate result, but will take 40 seconds."
+                conditionText += "\n 1. <b>Performing a Formal Evaluation</b>: This gives a quite accurate result, but will take 20 seconds."
                 conditionText += "<br></br>"
             }
 
