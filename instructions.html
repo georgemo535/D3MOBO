@@ -52,7 +52,8 @@
         const ApplicationType = {
         TWITTER: 0,
         STACKOVERFLOW: 1,
-        GOOGLEMAPS: 2
+        GOOGLEMAPS: 2,
+        TUTORIAL: 3
         }
 
         function renderInstructions(){
@@ -60,9 +61,25 @@
             var conditionID = localStorage.getItem("exp-condition");
             var applicationID = localStorage.getItem("app");
 
-            var instructionHeadingText = "Imagine that you are a designer for an application produced by a tech company. In this task, you will be trying to find the design parameter configuration that provides the optimal tradeoff between two competing objectives within 30 minutes."
-            instructionHeadingText += "<br></br>"
+            var tutorialFinished = localStorage.getItem("tutorial-done");
 
+            if (tutorialFinished == "false"){
+              applicationID = 3;
+            }
+
+            if (applicationID == ApplicationType.TUTORIAL){
+              var instructionHeadingText = "<b>Tutorial Instructions</b>"
+              instructionHeadingText += "<br></br>"
+              instructionHeadingText += "This is the tutorial. Imagine that you are a designer for an application produced by a tech company. In this tutorial, you will be familiarizing yourself with the interface and try to find 1 design parameter configuration that provides the optimal tradeoff between two competing objectives. This tutorial lasts 5 minutes."
+              instructionHeadingText += "<br></br>"
+            }
+            else {
+              var instructionHeadingText = "<b>Task Instructions</b>"
+              instructionHeadingText += "<br></br>"
+              instructionHeadingText += "This is the main task. Imagine that you are a designer for an application produced by a tech company. In this task, you will be trying to find 3 design parameter configurations that provides the optimal tradeoff between two competing objectives within 20 minutes. You can decide to finish the task after 15 minutes."
+              instructionHeadingText += "<br></br>"
+            }
+            
             var applicationText;
             if (applicationID == ApplicationType.TWITTER){
                 applicationText = "<b>Design Parameters</b>"
@@ -148,6 +165,28 @@
                 applicationText += "\n 2. The <b>accuracy</b> of a user in finding all restaurants in an area with a certain description  - from 0 to 100 percent."
                 applicationText += "<br></br>"
             }
+            if (applicationID == ApplicationType.TUTORIAL){
+              applicationText = "<b>Design Parameters</b>"
+                applicationText += "<br></br>"
+                applicationText += "You will be shown a design task for a touchscreen tablet. Your goal is to find a design configuration that optimally satisfies both objectives of the speed and accuracy of a point-drag task on a touchscreen tablet."
+                applicationText += "<br></br>"
+                applicationText += "There will be two design parameters as follows: "
+                applicationText += "<br></br>"
+                applicationText += "\n 1. <b>Force</b> - the force required to register contact on the screen, ranging from 0 to 100 N."
+                applicationText += "<br></br>"
+                applicationText += "\n 2. <b>Area</b> - the area of contact required to register contact on the screen, ranging from 0 to 3 squared centimeters."
+                applicationText += "<br></br>"
+
+                applicationText += "<b>Objectives</b>"
+                applicationText += "<br></br>"
+
+                applicationText += "\n The two objectives are as follows: "
+                applicationText += "<br></br>"
+                applicationText += "\n 1. The <b>average speed</b> for a user to hit the targets - from 0 to 3 targets per second."
+                applicationText += "<br></br>"
+                applicationText += "\n 2. The <b>accuracy</b> of a user in hitting all targets in a 16 random-target task  - from 0 to 100 percent."
+                applicationText += "<br></br>"
+            }
             
 
             var conditionText;
@@ -163,14 +202,20 @@
                 conditionText += "\t\u2022 Inputting <b>forbidden regions</b> and <b>forbidden ranges</b>"
                 conditionText += "<br></br>"
 
-                conditionText += "\n We request that you input at least two forbidden regions and two forbidden ranges."
-                conditionText += "<br></br>"
+                if (applicationID == ApplicationType.TUTORIAL){
+                  conditionText += "\n We request that you input at least 1 forbidden region and 1 forbidden range."
+                  conditionText += "<br></br>"
+                }
+                else {
+                  conditionText += "\n We request that you input at least 2 forbidden regions and 2 forbidden ranges."
+                  conditionText += "<br></br>"
+                }
 
                 conditionText += "\n To simulate the real design process of pilot testing and formal evaluations, you have two ways of evaluating a design:"
                 conditionText += "<br></br>"
                 conditionText += "\n 1. Performing a <b>Formal Evaluation</b>: This gives a quite accurate result, but will take 20 seconds."
                 conditionText += "<br></br>"
-                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives a less accurate result, but will take 4 seconds."
+                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives a less accurate result, but will take 3 seconds."
                 conditionText += "<br></br>"
             }
             if (conditionID == ConditionType.DESIGNER){
@@ -185,7 +230,7 @@
                 conditionText += "<br></br>"
                 conditionText += "\n 1. Performing a <b>Formal Evaluation</b>: This gives a quite accurate result, but will take 20 seconds."
                 conditionText += "<br></br>"
-                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives a less accurate result, but will take 4 seconds."
+                conditionText += "\n 2. Performing a <b>Heuristic Evaluation</b>: This gives a less accurate result, but will take 3 seconds."
                 conditionText += "<br></br>"
             }
             if (conditionID == ConditionType.MOBO){
@@ -211,6 +256,14 @@
           participantID = localStorage.getItem("id");
           conditionID = localStorage.getItem("exp-condition");
           applicationID = localStorage.getItem("app");
+          tutorialFinished = localStorage.getItem("tutorial-done");
+
+          if (tutorialFinished == "false"){
+            applicationID = "tutorial";
+          }
+
+          console.log(applicationID);
+
           $.ajax({
             url: "./cgi/start_log.py",
             type: "post",

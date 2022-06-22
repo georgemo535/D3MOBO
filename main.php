@@ -7,8 +7,10 @@
 </head>
 <body>
     <div class="main-panel">
-        <iframe src="task.html" class="interface" style="width: 30%;" name="task"></iframe>
-        <iframe id="mobo-interface" src="mobo.html" class="interface" style="width: 67.5%;" name="mobo"></iframe>
+        <iframe src="task.html" class="interface" style="width: 30%;" name="task">
+        </iframe>
+        <iframe id="mobo-interface" src="mobo.html" class="interface" style="width: 67.5%;" name="mobo">
+        </iframe>
     </div>
 </body>
 </html>

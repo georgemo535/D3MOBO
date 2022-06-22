@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<svg
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:cc="http://creativecommons.org/ns#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns:ns1="http://sozi.baierouge.fr"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    id="svg2"
+    viewBox="0 0 64 64"
+    version="1.1"
+  >
+  <g
+      id="g2824"
+    >
+    <path
+        id="rect3826"
+        d="m24 7v37l-11-11-6 6 18 18h32v-28h-24v-22h-9z"
+    />
+    <path
+        id="path2814"
+        fill="#fff"
+        d="m10 39 3-3 13 13v-40h5v22h24v24h-29l-16-16z"
+    />
+  </g
+  >
+  <metadata
+    >
+    <rdf:RDF
+      >
+      <cc:Work
+        >
+        <dc:format
+          >image/svg+xml</dc:format
+        >
+        <dc:type
+            rdf:resource="http://purl.org/dc/dcmitype/StillImage"
+        />
+        <cc:license
+            rdf:resource="http://creativecommons.org/licenses/publicdomain/"
+        />
+        <dc:publisher
+          >
+          <cc:Agent
+              rdf:about="http://openclipart.org/"
+            >
+            <dc:title
+              >Openclipart</dc:title
+            >
+          </cc:Agent
+          >
+        </dc:publisher
+        >
+        <dc:title
+          >hand pointer white</dc:title
+        >
+        <dc:date
+          >2013-09-05T09:36:31</dc:date
+        >
+        <dc:description
+          >white hand pointer</dc:description
+        >
+        <dc:source
+          >https://openclipart.org/detail/183015/pointer-web-white-by-crisg-183015</dc:source
+        >
+        <dc:creator
+          >
+          <cc:Agent
+            >
+            <dc:title
+              >crisg</dc:title
+            >
+          </cc:Agent
+          >
+        </dc:creator
+        >
+        <dc:subject
+          >
+          <rdf:Bag
+            >
+            <rdf:li
+              >cursor</rdf:li
+            >
+            <rdf:li
+              >hand cursor</rdf:li
+            >
+            <rdf:li
+              >hand pointer</rdf:li
+            >
+            <rdf:li
+              >icon</rdf:li
+            >
+            <rdf:li
+              >one click</rdf:li
+            >
+            <rdf:li
+              >open link</rdf:li
+            >
+            <rdf:li
+              >pictogram</rdf:li
+            >
+            <rdf:li
+              >pointer</rdf:li
+            >
+            <rdf:li
+              >web link</rdf:li
+            >
+            <rdf:li
+              >white pointer</rdf:li
+            >
+          </rdf:Bag
+          >
+        </dc:subject
+        >
+      </cc:Work
+      >
+      <cc:License
+          rdf:about="http://creativecommons.org/licenses/publicdomain/"
+        >
+        <cc:permits
+            rdf:resource="http://creativecommons.org/ns#Reproduction"
+        />
+        <cc:permits
+            rdf:resource="http://creativecommons.org/ns#Distribution"
+        />
+        <cc:permits
+            rdf:resource="http://creativecommons.org/ns#DerivativeWorks"
+        />
+      </cc:License
+      >
+    </rdf:RDF
+    >
+  </metadata
+  >
+</svg
+>

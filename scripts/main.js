@@ -1,5 +1,5 @@
-var numParams = 5;
-var numObjs = 2;
+var numParams;
+var numObjs;
 var parameterNames;
 var objectiveNames;
 var parameterBounds;
@@ -42,7 +42,8 @@ const ConditionType = {
 const ApplicationType = {
   TWITTER: 0,
   STACKOVERFLOW: 1,
-  GOOGLEMAPS: 2
+  GOOGLEMAPS: 2,
+  TUTORIAL: 3
 }
 
 const ApplicationParams = {
@@ -57,21 +58,34 @@ const ApplicationParams = {
   2: {parameters: ["Transparency", "Distance", "Icon Size", "Box Size", "Text Size"],
             xbounds: [[0.5, 1], [5, 50], [1, 10], [10, 50], [10, 30]],
             objectives: ["Speed", "Accuracy"],
-            ybounds: [[0, 100], [0, 100]]}
-}
+            ybounds: [[0, 100], [0, 100]]},
+  3: {parameters: ["Force", "Area"],
+      xbounds: [[10, 100], [0.5, 3]],
+      objectives: ["Speed", "Accuracy"],
+      ybounds: [[0, 3], [0, 100]]}
+};
 
 async function renderMoboInterface() {
   participantID = localStorage.getItem("id");
   conditionID = localStorage.getItem("exp-condition");
   applicationID = localStorage.getItem("app");
+  tutorialFinished = localStorage.getItem("tutorial-done");
 
-  // numParams = config["dimx"];
-  // numObjs = config["dimobj"];
-  // console.log(ApplicationParams[applicationID].parameters)
+  console.log(tutorialFinished);
+
+  if (tutorialFinished == "false"){
+    applicationID = 3;
+    timeFinishDisabled = 0;
+    timeFinishTask = 5;
+  }
+
   parameterNames = ApplicationParams[applicationID].parameters;
   objectiveNames = ApplicationParams[applicationID].objectives;
   parameterBounds = ApplicationParams[applicationID].xbounds;
   objectiveBounds = ApplicationParams[applicationID].ybounds;
+
+  numParams = parameterNames.length;
+  numObjs = objectiveNames.length;
 
   console.log(parameterNames);
 
@@ -80,11 +94,13 @@ async function renderMoboInterface() {
     midPoints.push((parameterBounds[i][0]));
   }
   var midPointsScaled = normalizeParameters(midPoints, parameterBounds);
-  designLineData = [{id: "current", x1: midPointsScaled[0], x2: midPointsScaled[1], x3: midPointsScaled[2], x4: midPointsScaled[3], x5: midPointsScaled[4]}];
-
-  // regionData = await parseRegions("../data/regions.csv");
-  // evaluatedDesigns = await parseDesigns("../data/data.csv");
-  // forbidRangeData = await parseRanges("../data/ranges.csv");
+  
+  designLineDict = {};
+  designLineDict["id"] = "current";
+  for (var i = 1; i <= numParams; i++){
+    designLineDict["x" + i] = midPointsScaled[i-1];
+  }
+  designLineData = [designLineDict];
 
   regionData = [];
   evaluatedDesigns = [];
@@ -97,16 +113,21 @@ async function renderMoboInterface() {
 
   document.getElementById("finish-button").addEventListener("click", finishExperiment);
   document.getElementById("heuristic-checkbox").addEventListener("click", plotHeuristicData);
+  document.getElementById("heuristic-checkbox").checked = true;
 
   document.getElementById("finish-button").disabled = true;
   setTimeout(() => {
     document.getElementById("finish-button").disabled = false;}
     , 1000 * 60 * timeFinishDisabled);
   
-
   setTimeout(
     function(){
-      alert("20 minutes have passed, please finish the task.");
+      if (applicationID == ApplicationType.TUTORIAL){
+          alert("5 minutes have passed, please finish the tutorial.");
+        }
+      else{
+          alert("20 minutes have passed, please finish the task.");
+        }
       }
     , 1000 * 60 * timeFinishTask /// milliseconds = 10 seconds
   );
@@ -206,6 +227,23 @@ async function renderMoboInterface() {
   if (applicationID == ApplicationType.GOOGLEMAPS){
     parent.task.document.getElementById('task-window').innerHTML = "<iframe src='maps-clone.html' class='design-window' name='design'></iframe>";
   }
+  if (applicationID == ApplicationType.TUTORIAL){
+    parent.task.document.getElementById('task-window').innerHTML = "<iframe src='finger-point.html' class='design-window' name='design'></iframe>";
+  }
+
+  // Countdown Timer
+  var countDownSeconds = 0;
+
+  var setTimer = setInterval(function() {
+  countDownSeconds += 1;
+    
+  // Time calculations for days, hours, minutes and seconds
+  var minutes = Math.floor((countDownSeconds / 60));
+  var seconds = Math.floor((countDownSeconds % 60));
+
+  parent.task.document.getElementById("countdown-timer").innerHTML = minutes + "m " + seconds + "s ";
+    
+  }, 1000);
 }
 
 function readTextFile(file, callback) {
@@ -239,21 +277,15 @@ function constructParameterSlider() {
       var inputTxt = "<input type='range' min=" + parameterBounds[i][0] + " max=" + parameterBounds[i][1] + " value='" + parameterBounds[i][0] + "' step='0.01' class='slider'"
       + " id=" + "'param" + (i+1) + "slider'" + " name=" + "'param" + (i+1) + "'" + " oninput='this.nextElementSibling.value = this.value'>";
       var outputTxt = "<output id='param"+ (i+1) + "output'>" + " " + parameterBounds[i][0] + "</output>"
-      // var breakTxt = "<br><br>"
       var divEnd = "</div>"
       
-      // console.log(inputTxt);
       var paramSlidersDiv = document.getElementById("param-sliders");
       paramSlidersDiv.innerHTML += divStart;
       paramSlidersDiv.innerHTML += labelTxt;
       paramSlidersDiv.innerHTML += inputTxt;
       paramSlidersDiv.innerHTML += outputTxt;
-      // paramSlidersDiv.innerHTML += breakTxt;
-      paramSlidersDiv.innerHTML += divEnd;
 
-      // parent.task.document.getElementById("param-sliders").appendChild(inputTxt)
-      // parent.task.document.getElementById("param-sliders").appendChild(outputTxt)
-      // parent.task.document.getElementById("param-sliders").appendChild(breakTxt)
+      paramSlidersDiv.innerHTML += divEnd;
   }
 
   for (var i = 0; i < numParams; i++){
@@ -296,8 +328,6 @@ function normalizeObjectives(objectives, bounds){
 
 function unnormalizeObjectives(objectives, bounds){
   var unnormalizedObjs = [];
-  console.log(objectives);
-  console.log(bounds);
   for (var i = 0; i < numObjs; i++){
     var upperBound = Number(bounds[i][1]);
     var lowerBound = Number(bounds[i][0]);
@@ -364,52 +394,6 @@ const svgRegions = d3.select("#regions")
   .append("g")
   .attr("transform",
   "translate(" + margin.left + "," + margin.top + ")");
-
-// Function to parse the csv files of the design parameters and objectives into a correct data format
-async function parseDesigns(filepath) {
-  var data = await d3.csv(filepath, (d) => {
-      return {
-        id: d.id,
-        x1: d.x1,
-        x2: d.x2, 
-        x3: d.x3,
-        x4: d.x4,
-        x5: d.x5,
-        y1: d.y1,
-        y2: d.y2
-      };
-  });
-  return data;
-}
-
-// Function to parse the csv files of forbidden regions into a correct data format
-async function parseRegions(filepath) {
-  var data = await d3.csv(filepath, (d) => {
-      return {
-        id: d.id,
-        lowerBound: [d.x1low, d.x2low, d.x3low, d.x4low, d.x5low],
-        upperBound: [d.x1up, d.x2up, d.x3up, d.x4up, d.x5up],
-        confidence: d.confidence
-      };
-  });
-
-  return data;
-}
-
-// Function to parse the csv files of forbidden ranges into a correct data format
-async function parseRanges(filepath) {
-  var data = await d3.csv(filepath, (d) => {
-    return {
-      id: d.id,
-      dim: d.dim,
-      low: d.low,
-      up: d.up,
-      confidence: d.confidence
-    };
-  });
-
-  return data;
-}
 
 // Function to highlight PCP line when hovered over
 const highlightPcp = function(event, d){
@@ -513,19 +497,16 @@ const onClickDesign = function(event, d){
       return d3.select(this).attr("value") != "current";
     })
     .transition().duration(200)
-    // .style("stroke", "lightgrey")
     .style("opacity", "0.2")
   
   d3.select("#scatter").selectAll(".dot")
     .transition()
     .duration(200)
     .attr("opacity", "0.2")
-    // .style("fill", "lightgrey")
     .attr("r", 3)
 
   d3.select(this)
     .transition().duration(200)
-    // .style("stroke", "green")
     .style("opacity", 0.8)
     .style("stroke-width", "4")
 
@@ -542,9 +523,7 @@ const onClickDesign = function(event, d){
   let parameterValues = JSON.parse("[" + d3.select(this).attr("design") + "]");
   var unnormalizedParamVals = unnormalizeParameters(parameterValues, parameterBounds);
 
-  // console.log(parameterValues);
   for (var i = 0; i < numParams; i++){
-    // console.log(parameterValues[i]);
     document.getElementById('param' + (i+1) + 'slider').value = unnormalizedParamVals[i];
     document.getElementById('param' + (i+1) + 'output').value = unnormalizedParamVals[i];
   }
@@ -559,9 +538,12 @@ const onClickDesign = function(event, d){
 
 // Function to parse data point in right way to input into the PCP
 function pathPcp(d) {
-  // const line = d3.line()(dimensionsPcp.map(function(p) { return [xPcp(p), yPcp[p](d[p])]; }));
-  // return line;
-  var lineData = [d.x1, d.x2, d.x3, d.x4, d.x5]
+
+  var lineData = [];
+  for (var i = 1; i <= numParams; i++){
+    lineData.push(d["x" + i]);
+  }
+
   var linePath = "M" + 0 + "," + (1- lineData[0]) * height;
 
   for (var i = 1; i < lineData.length; i++){
@@ -590,11 +572,15 @@ function drawPcp() {
   svgPcp.selectAll("myPath")
     .data(evaluatedDesigns).enter()
     .append("path")
-    // .join("path")
       .attr("class", function (d) { return "line"; } ) // 2 class for each line: 'line' and the group name
       .attr("d", pathPcp)
       .attr("value", function (d) {return d.id; })
-      .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+      .attr("design", function (d) {
+          var designData = [];
+          for (var i = 1; i <= numParams; i++){
+            designData.push(d["x" + i]);
+          }
+          return designData; })
       .style("fill", "none" )
       .style("stroke", function(d){ return( "blue")} )
       .style("opacity", 0.8)
@@ -630,7 +616,11 @@ function drawPcp() {
         .attr("class", function(d){ return "line"; })
         .attr("d", d => pathPcp(d))
         .attr("value", function (d) {return d.id; })
-        .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+        .attr("design", function (d) {var designData = [];
+          for (var i = 1; i <= numParams; i++){
+            designData.push(d["x" + i]);
+          }
+          return designData;})
         .style("fill", "none" )
         .style("stroke", function(d){ return( "green")} )
         .style("opacity", 0.8)
@@ -652,39 +642,42 @@ function drawPcp() {
   .selectAll("myPath")
   .data(designLineData).enter()
   .append("path")
-  // .join("path")
     .attr("class", function (d) { return "line"; } ) // 2 class for each line: 'line' and the group name
     .attr("d", d => pathPcp(d))
     .attr("value", function (d) {return d.id; })
-    .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+    .attr("design", function (d) {var designData = [];
+      for (var i = 1; i <= numParams; i++){
+        designData.push(d["x" + i]);
+      }
+      return designData;})
     .style("fill", "none" )
-    .style("stroke", function(d){ return( "red")} )
+    .style("stroke", function(d){ return("red")} )
     .style("opacity", 1.0)
     .style("stroke-width", "2")
 }
 
 // Function to draw the design line
 function drawDesignLine() {
-  // console.log(designLineData);
   svgPcp
   .selectAll("myPath")
   .data(designLineData).enter()
   .append("path")
-  // .join("path")
     .attr("class", function (d) { return "line"; } ) // 2 class for each line: 'line' and the group name
     .attr("d", function(d) { return pathPcp(d);})
     .attr("value", function (d) {return d.id; })
-    .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+    .attr("design", function (d) {var designData = [];
+      for (var i = 1; i <= numParams; i++){
+        designData.push(d["x" + i]);
+      }
+      return designData;})
     .style("fill", "none" )
-    .style("stroke", function(d){ return( "red")} )
+    .style("stroke", function(d){ return("red")} )
     .style("opacity", 1.0)
     .style("stroke-width", "2")
 }
 
 // Function to draw the guiding line that follows the sliders
 const drawGuidingLine = function(event){
-  // console.log(this.name.replace("param", ""));
-  
   var paramSliders = []
   for (var i = 0; i < numParams; i++){
     var valueSlider = document.getElementById('param' + (i+1) + 'slider').value;
@@ -722,7 +715,6 @@ const highlightScatter = function(event, d){
       return d3.select(this).attr("value") != "current";
     })
     .transition().duration(200)
-    // .style("stroke", "lightgrey")
     .style("opacity", "0.2")
   
   d3.select(this)
@@ -730,38 +722,6 @@ const highlightScatter = function(event, d){
     .duration(200)
     .style("opacity", 0.8)
     .attr("r", 7)
-
-  // if (d3.select(this).attr("id") == "pilot-point" && document.getElementById("heuristic-checkbox").checked){
-  //   var maxID = heuristicDesigns.length;
-  //   var pilotPointCorresponding = svgScatter.selectAll(".dot").filter(function() {
-  //     return d3.select(this).attr("value") == -maxID;
-  //   })
-  //   pilotPointCorresponding
-  //     .transition()
-  //     .duration(200)
-  //     .style("opacity", 0.8)
-  //     .attr("r", 7)
-
-  //   var correspondingLine = svgPcp.selectAll(".line").filter(function() {
-  //     return d3.select(this).attr("value") == maxID;
-  //   })
-  
-  //   correspondingLine
-  //     .transition().duration(200)
-  //     // .style("stroke", "green")
-  //     .style("opacity", 0.8)
-  //     .style("stroke-width", "4");
-    
-  //   correspondingLine.raise();
-
-  //   tooltipPcp.html(String(unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
-  //   // .transition()
-  //   // .duration(500)
-  //   .style("opacity", 1)
-  //   .style("left", 25 + "px")
-  //   .style("top", -25 + "px")
-  //   .style("visibility", "visible")
-  // }
 
   let objectivesDesignY1 = d3.select(this).attr("y1");
 
@@ -772,8 +732,6 @@ const highlightScatter = function(event, d){
   let cyObjective = d3.select(this).attr("cy");
   
   tooltipScatter.html(String(unnormalizeObjectives([Number(objectivesDesignY1), Number(objectivesDesignY2)], objectiveBounds)).split(',').join(', '))
-    // .transition()
-    // .duration(500)
     .style("opacity", 1)
     .style("left", cxObjective + "px")
     .style("top", cyObjective - svgHeight + 40 + "px")
@@ -787,28 +745,16 @@ const highlightScatter = function(event, d){
 
   correspondingLine
     .transition().duration(200)
-    // .style("stroke", "green")
     .style("opacity", 0.8)
     .style("stroke-width", "4");
   
   correspondingLine.raise();
 
   tooltipPcp.html(String(unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
-  // .transition()
-  // .duration(500)
   .style("opacity", 1)
   .style("left", 25 + "px")
   .style("top", -25 + "px")
   .style("visibility", "visible")
-  
-  // else {
-  //   tooltipPcp.html("Design Parameters: ")
-  //   .transition()
-  //   .duration(500)
-  //   .style("opacity", 1)
-  //   .style("left", (event.x) / 2 + "px")
-  //   .style("top", (event.y) / 2 + "px")
-  // }
 }
 
 const onClickScatter = function(event, d){
@@ -817,21 +763,18 @@ const onClickScatter = function(event, d){
       return d3.select(this).attr("value") != "current";
     })
     .transition().duration(200)
-    // .style("stroke", "lightgrey")
     .style("opacity", "0.2")
     .style("stroke-width", "2")
   
   d3.select("#scatter").selectAll(".dot")
     .transition()
     .duration(200)
-    // .style("fill", "lightgrey")
     .attr("opacity", "0.2")
     .attr("r", 3)
 
   d3.select(this)
     .transition()
     .duration(200)
-    // .style("fill", "green")
     .attr("opacity", 0.8)
     .attr("r", 7)
 
@@ -841,19 +784,14 @@ const onClickScatter = function(event, d){
     return d3.select(this).attr("value") == idVal
   });
 
-  console.log(lineDesign.attr("value"));
-
   lineDesign.transition().duration(200)
-    // .style("stroke", "green")
     .style("opacity", "0.8")
     .style("stroke-width", "4")
 
   let parameterValues = JSON.parse("[" + lineDesign.attr("design") + "]");
   var unnormalizedParamVals = unnormalizeParameters(parameterValues, parameterBounds);
 
-  // console.log(parameterValues);
   for (var i = 0; i < numParams; i++){
-    // console.log(parameterValues[i]);
     document.getElementById('param' + (i+1) + 'slider').value = unnormalizedParamVals[i];
     document.getElementById('param' + (i+1) + 'output').value = unnormalizedParamVals[i];
   }
@@ -862,7 +800,6 @@ const onClickScatter = function(event, d){
 
   for (var i = 0; i < numParams; i++){
     document.getElementById('param' + (i+1) + 'slider').dispatchEvent(new Event('input'));
-    // console.log("Hello");
   }
 }
 
@@ -879,7 +816,6 @@ const doNotHighlightScatter = function(event, d){
       return d3.select(this).attr("value") != "current";
     })
     .transition().duration(200).delay(500)
-    // .style("stroke", function(d){ return("lightblue")} )
     .style("opacity", 0.8)
     .style("stroke-width", "2")
   
@@ -981,7 +917,6 @@ function drawScatter() {
   // Function to draw the Pareto front
   var dominatingSet = getDominatingSet(evaluatedDesigns);
   var dominatingSetSortX = dominatingSet.sort(compareObjectivesFirst);
-  // console.log(dominatingSetSortX);
 
   var paretoLineData = [];
   for (var i = 0; i < dominatingSetSortX.length - 1; i++){
@@ -991,8 +926,6 @@ function drawScatter() {
                 (Number(dominatingSetSortX[i+1].y2) + 1) / 2];
     paretoLineData.push(data);
   }
-
-  // console.log(paretoLineData);
 
   if (paretoLineData.length > 0){
     svgScatter
@@ -1028,15 +961,17 @@ function drawHeuristicPoint(){
     .domain(objectiveBounds[1])
     .range([ height, 0]);
 
-  // console.log(pilotTestResults);
-
   svgScatter.append('g')
     .selectAll("dot")
     .data(pilotTestResults).enter()
     .append("circle")
         .attr("id", "pilot-point")
         .attr("objectives", function (d) {return [d.y1, d.y2]; })
-        .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+        .attr("design", function (d) {var designData = [];
+          for (var i = 1; i <= numParams; i++){
+            designData.push(d["x" + i]);
+          }
+          return designData;})
         .attr("y1", function(d) {return d.y1; })
         .attr("y2", function(d) {return d.y2; })
         .attr("cx", function (d) { return x(0.5 * (Number(d.y1) + 1) * (objectiveBounds[0][1] - objectiveBounds[0][0]) + objectiveBounds[0][0]); } )
@@ -1052,7 +987,7 @@ function compareObjectivesFirst(a, b){
   if (Number(a.y1) < Number(b.y1)){
     return -1;
   }
-  if (Number(a.y1) > Number(b.y1)){
+  if (Number(a.y1) >= Number(b.y1)){
     return 1;
   }
   return 0;
@@ -1063,7 +998,7 @@ function compareObjectivesSecond(a, b){
   if (Number(a.y2) < Number(b.y2)){
     return -1;
   }
-  if (Number(a.y2) > Number(b.y2)){
+  if (Number(a.y2) >= Number(b.y2)){
     return 1;
   }
   return 0;
@@ -1073,13 +1008,11 @@ function compareObjectivesSecond(a, b){
 function getDominatingSet(evaluatedDesigns){
   var dominatingSet = [];
   var sortedObjectiveSecond = evaluatedDesigns.sort(compareObjectivesSecond).reverse();
-  // console.log(sortedObjectiveSecond);
   var maxFirst = -1;
   
   for (var i = 0; i < sortedObjectiveSecond.length; i++){
     if (Number(sortedObjectiveSecond[i].y1) >= Number(maxFirst)){
       maxFirst = Number(sortedObjectiveSecond[i].y1);
-      // console.log(maxFirst);
       dominatingSet.push(sortedObjectiveSecond[i]);
     }
   }
@@ -1093,7 +1026,6 @@ function plotHeuristicData(){
 
 // Function to highlight forbidden region area when hovered over
 const highlightArea = function(event, d){
-  // console.log(svgScatter.selectAll(".dot"));
   d3.select("#regions").selectAll(".area")
     .transition()
     .duration(200)
@@ -1119,7 +1051,6 @@ const doNotHighlightArea = function(event, d){
 
 // Function to draw the forbidden region plot
 function drawRegionPlot() {
-  // regionData = await parseRegions("../data/regions.csv");
   console.log(regionData);
 
   svgRegions.selectAll("*").remove();
@@ -1159,7 +1090,6 @@ function drawRegionPlot() {
     }
     regionPath += 0 + " " + (1 - d.upperBound[0])*height;
     regionPath += " Z";
-    console.log(regionPath);
     return regionPath;
   }
   
@@ -1236,19 +1166,22 @@ function drawRegionPlot() {
   .attr("class", "group-circles")
   .selectAll("circle")
   .data(function(d) {
-      // console.log(d);
-      var dPt = [
-          { "id": d.id, "value": "lower", "x": 0, "y": d.lowerBound[0] },
-          { "id": d.id, "value": "upper", "x": 0, "y": d.upperBound[0] },
-          { "id": d.id, "value": "lower", "x": width * 1 / (numParams - 1), "y": d.lowerBound[1] },
-          { "id": d.id, "value": "upper", "x": width * 1 / (numParams - 1), "y": d.upperBound[1] },
-          { "id": d.id, "value": "lower", "x": width * 2 / (numParams - 1), "y": d.lowerBound[2] },
-          { "id": d.id, "value": "upper", "x": width * 2 / (numParams - 1), "y": d.upperBound[2] },
-          { "id": d.id, "value": "lower", "x": width * 3 / (numParams - 1), "y": d.lowerBound[3] },
-          { "id": d.id, "value": "upper", "x": width * 3 / (numParams - 1), "y": d.upperBound[3] },
-          { "id": d.id, "value": "lower", "x": width * 4 / (numParams - 1), "y": d.lowerBound[4] },
-          { "id": d.id, "value": "upper", "x": width * 4 / (numParams - 1), "y": d.upperBound[4] },
-      ]
+      var dPt = [];
+      for (var i = 0; i < numParams; i++){
+        var dPtDictLower = {};
+        dPtDictLower["id"] = d.id;
+        dPtDictLower["value"] = "lower";
+        dPtDictLower["x"] = width * i / (numParams - 1);
+        dPtDictLower["y"] = d.lowerBound[i];
+        dPt.push(dPtDictLower);
+
+        var dPtDictUpper = {};
+        dPtDictUpper["id"] = d.id;
+        dPtDictUpper["value"] = "upper";
+        dPtDictUpper["x"] = width * i / (numParams - 1);
+        dPtDictUpper["y"] = d.upperBound[i];
+        dPt.push(dPtDictUpper);
+      }
       return dPt;
       })
   .enter()
@@ -1270,23 +1203,20 @@ function drawRegionPlot() {
     .call(d3.drag()
       .on('drag', function(event, d) {            
           var yVal = +d.y - (1 - y.invert(event.y));
-          // console.log(pointID);
           if (d.value == "upper"){
             var lowerBound = svgRegions.selectAll(".dot")
             .filter(function() {
                 return d3.select(this).attr("pointid") == "lower" + "dim" + d.x + "id" + d.id;
             }).attr("cy");
             var newY = Math.min((1 - yVal) * height, lowerBound - 0.05 * height);
-            // console.log(newY);
             d3.select(this).attr('cy', function(d) {return Math.max(0, newY); })
           } else {
             var upperBound = svgRegions.selectAll(".dot")
             .filter(function() {
                 return d3.select(this).attr("pointid") == "upper" + "dim" + d.x + "id" + d.id;
             }).attr("cy");
-            // console.log(upperBound);
             var newY = Math.max((1 - yVal) * height, Number(upperBound) + 0.05 * Number(height));
-            // console.log(newY);
+
             d3.select(this).attr('cy', function(d) {return Math.min(height, newY); })
           }
 
@@ -1294,7 +1224,6 @@ function drawRegionPlot() {
       .on("end", function(event, d) {
           var yVal = +d.y - (1 - y.invert(event.y));
           d.y = +d.y - (1 - y.invert(event.y));
-          // console.log(pointID);
           if (d.value == "upper"){
             var lowerBound = svgRegions.selectAll(".dot")
             .filter(function() {
@@ -1304,7 +1233,7 @@ function drawRegionPlot() {
 
             for (var i = 0; i < regionData.length; i++){
               if (regionData[i].id == d.id){
-                regionData[i].upperBound[d.x/(width / (numParams-1))] = Math.min(1, Math.max(yVal, lowerBoundConvert));
+                regionData[i].upperBound[d.x / (width / (numParams-1))] = Math.min(1, Math.max(yVal, lowerBoundConvert));
               }
             }
 
@@ -1337,13 +1266,11 @@ function drawRegionPlot() {
   for (var i = 0; i < numParams; i++) {
     var wButton = 20;
     var hButton = 20;
-    var xCenter = i*(width / (numParams-1));
+    var xCenter = i * (width / (numParams-1));
     var yCenter = height + 20;
 
     var addForbiddenRangeButton = svgRegions.append("g")
       .attr("transform", "translate(" + xCenter + "," + yCenter + ")")
-      //.attr("x", xTopLeft)
-      //.attr("y", yTopLeft);
 
     addForbiddenRangeButton
       .append('rect')
@@ -1468,8 +1395,6 @@ function drawRegionPlot() {
 
 // Function to render the forbidden region list given global variable of regionData
 function renderRegionList() {
-  // console.log("Loading forbidden regions")
-  // var regionData = await parseRegions("../data/regions.csv");
   var parentList = document.getElementById("forbidden-region-list");
   while (parentList.firstChild) {
     parentList.firstChild.remove();
@@ -1484,7 +1409,6 @@ function renderRegionList() {
   
   for (var i = 0; i < numberForbiddenRegions; i++){
     var regionID = regionData[i].id;
-    // console.log(regionID);
     var inputTxt = "<input type='radio' id='region-tick-" + regionID +  "' name='forbidden-tick' value=" + regionID + ">"
     var labelTxt = "<label id='region-tick-label' for='forbidden" + regionID + "'>" + (i+1) + "</label><br>"
 
@@ -1515,7 +1439,6 @@ function renderRegionList() {
 
   radios.forEach(function(elem) {
     elem.addEventListener("click", updateShownRegion);
-    // elem.addEventListener("deselct", doNotShowRegion)
   })
 
   let slider = document.getElementById('confidence-slider');
@@ -1527,8 +1450,6 @@ function renderRegionList() {
 
 // Update the shown region on the forbidden regions chart with selected from the forbidden region list
 function updateShownRegion() {
-  // console.log(this.checked);
-  // console.log(this);
   var selectedRegionID = this.value;
   var selectedRegionName = this.id;
 
@@ -1559,7 +1480,6 @@ function updateShownRegion() {
   }
 
   if (this.checked) {
-    // console.log(correspondingRegion.attr("confidence"));
     svgRegions.selectAll(".area").transition()
     .duration(200)
     .style("fill", "lightgrey")
@@ -1581,10 +1501,6 @@ function updateShownRegion() {
     document.getElementById('confidence-slider-value').value = correspondingRegion.attr("confidence");
 
     document.getElementById('button-delete-forbidden').disabled = false;
-
-    // console.log(regionData);
-    // regionData[selectedRegionID-1].confidence = document.getElementById('confidence-slider').value;
-
   } else {
     svgRegions.selectAll(".area").transition()
     .duration(200)
@@ -1602,7 +1518,6 @@ function updateShownRegion() {
 
     document.getElementById('button-delete-forbidden').disabled = true;
   }
-
 }
 
 // Update the confidence value of the selected forbidden region when mouse released from confidence slider
@@ -1616,7 +1531,6 @@ function updateConfidenceSlider() {
       selectedName = radios[i].id;
     }
   }
-  // console.log(selectedID);
 
   var isRegion = selectedName.startsWith("region");
   var correspondingRegion;
@@ -1652,14 +1566,13 @@ function updateConfidenceSlider() {
       }
     }
   }
-  // regionData[selectedID].confidence = this.value;
+
   correspondingRegion.attr("confidence", this.value);
   correspondingRegion.transition()
     .duration(200)
     .style("fill", "blue")
     .style("opacity", correspondingRegion.attr("confidence") * 0.7 + 0.3);
 
-  // console.log(regionData);
 }
 
 // Update the shown region on forbidden regions chart when selected from the chart (clicked on area)
@@ -1692,8 +1605,6 @@ const selectRegion = function(event, d){
   dragPoints.attr("r", 5);
   
   svgRegions.selectAll(".group-circles").each( function() {d3.select(this).raise(); })
-
-  // console.log(groupPoints);
   
   let radios = document.querySelectorAll('input[type=radio]');
   for (i=0; i < radios.length; i++){
@@ -1748,7 +1659,6 @@ function addNewForbiddenRegion() {
   var normalizedSlidersValues = normalizeParameters(slidersValues, parameterBounds);
 
   for (var i = 0; i < numParams; i++){
-    // console.log(parameterValues[i]);
     dataEntered = normalizedSlidersValues[i];
     upperBounds.push(Math.min(dataEntered + defaultWidth, 1.0));
     lowerBounds.push(Math.max(dataEntered - defaultWidth, 0.0));
@@ -1760,7 +1670,6 @@ function addNewForbiddenRegion() {
       takenMaxID = regionData[i].id;
     }
   }
-  // console.log(takenMaxID);
 
   var newID = Number(takenMaxID) + 1;
   var newRegionData = {
@@ -1816,8 +1725,6 @@ function addNewForbiddenRegion() {
 
 // Update to delete a selected forbidden region
 function deleteForbiddenRegion() {
-  console.log("Hello");
-
   var idSelected;
   var isRegion;
   var radiosList = document.querySelectorAll('input[type=radio]');
@@ -1997,7 +1904,6 @@ function runFormalTest() {
     inputSliders[i].disabled = true;
     var name = inputSliders[i].id;
     var val = inputSliders[i].value;
-    // console.log(name + ": " + val);
     paramVals.push(val);
   }
 
@@ -2032,29 +1938,35 @@ function getTestResult(paramVals, testType) {
               'condition_id'      :String(conditionID) },                    
       success: function(result) {
         submitReturned = true;
-        // console.log(result.message);
         var objValsNorm = JSON.parse(result.message).obj_vals;
 
         var objVals = unnormalizeObjectives(objValsNorm, objectiveBounds);
 
-        // TODO handle returned objVals
         document.getElementById("test-result").innerHTML += "<br>" + (parseFloat(objVals[0]).toFixed(2) + " , " + parseFloat(objVals[1]).toFixed(2));
         document.querySelectorAll(".button").disabled = false;
 
-        $('.button').prop('disabled', false);
+        if (applicationID == ApplicationType.TUTORIAL){
+          $(".button").not("#button-delete-forbidden").prop("disabled", false);
+        }
+        else {
+          $('.button').not("#finish-button, #button-delete-forbidden").prop('disabled', false);
+        }
+
         document.getElementById("test-button").disabled = false;
         document.getElementById("evaluation-button").disabled = false;
         
         if (testType == TestType.FORMAL){
           var maxID = evaluatedDesigns.length;
-          var newDesignData = {id: maxID+1,
-                              x1: parseFloat(paramValsNorm[0]).toFixed(2),
-                              x2: parseFloat(paramValsNorm[1]).toFixed(2),
-                              x3: parseFloat(paramValsNorm[2]).toFixed(2),
-                              x4: parseFloat(paramValsNorm[3]).toFixed(2),
-                              x5: parseFloat(paramValsNorm[4]).toFixed(2),
-                              y1: parseFloat(objValsNorm[0]).toFixed(2),
-                              y2: parseFloat(objValsNorm[1]).toFixed(2)}
+
+          var newDesignData = {};
+          newDesignData["id"] = maxID + 1;
+          for (var i = 1; i <= numParams; i++){
+            newDesignData["x" + i] = parseFloat(paramValsNorm[i-1]).toFixed(2);
+          }
+          for (var i = 1; i <= numObjs; i++){
+            newDesignData["y" + i] = parseFloat(objValsNorm[i-1]).toFixed(2);
+          }
+        
           evaluatedDesigns.push(newDesignData);
 
           var coverageResult = getCoverageResult(evaluatedDesigns, numSubdivisions, numParams);
@@ -2084,25 +1996,26 @@ function getTestResult(paramVals, testType) {
         }
 
         if (testType == TestType.PILOT){
-          pilotTestResults = [{id: "pilot-point",
-                              x1: parseFloat(paramValsNorm[0]).toFixed(2),
-                              x2: parseFloat(paramValsNorm[1]).toFixed(2),
-                              x3: parseFloat(paramValsNorm[2]).toFixed(2),
-                              x4: parseFloat(paramValsNorm[3]).toFixed(2),
-                              x5: parseFloat(paramValsNorm[4]).toFixed(2),
-                              y1: parseFloat(objValsNorm[0]).toFixed(2),
-                              y2: parseFloat(objValsNorm[1]).toFixed(2)}];
-          // drawHeuristicPoint();
+          var pilotTestResultDict = {};
+          pilotTestResultDict["id"] = "pilot-point";
+          for (var i = 1; i <= numParams; i++){
+            pilotTestResultDict["x" + i] = parseFloat(paramValsNorm[i-1]).toFixed(2);
+          }
+          for (var i = 1; i <= numObjs; i++){
+            pilotTestResultDict["y" + i] = parseFloat(objValsNorm[i-1]).toFixed(2);
+          }
+          pilotTestResults = [pilotTestResultDict];
 
           var maxID = heuristicDesigns.length;
-          var newDesignData = {id: -maxID-1,
-                              x1: parseFloat(paramValsNorm[0]).toFixed(2),
-                              x2: parseFloat(paramValsNorm[1]).toFixed(2),
-                              x3: parseFloat(paramValsNorm[2]).toFixed(2),
-                              x4: parseFloat(paramValsNorm[3]).toFixed(2),
-                              x5: parseFloat(paramValsNorm[4]).toFixed(2),
-                              y1: parseFloat(objValsNorm[0]).toFixed(2),
-                              y2: parseFloat(objValsNorm[1]).toFixed(2)}
+          var newDesignData = {};
+          newDesignData["id"] = -maxID-1;
+          for (var i = 1; i <= numParams; i++){
+            newDesignData["x" + i] = parseFloat(paramValsNorm[i-1]).toFixed(2);
+          }
+          for (var i = 1; i <= numObjs; i++){
+            newDesignData["y" + i] = parseFloat(objValsNorm[i-1]).toFixed(2);
+          }
+ 
           heuristicDesigns.push(newDesignData);
 
           console.log(heuristicDesigns);
@@ -2130,14 +2043,15 @@ function getTestResult(paramVals, testType) {
 function getCoverageResult(evaluatedDesigns, numSubdivisions, numParams){
   var hyperCubesCovered = new Set();
   for (var i = 0; i < evaluatedDesigns.length; i++){
-    var design = [evaluatedDesigns[i].x1, evaluatedDesigns[i].x2, evaluatedDesigns[i].x3, evaluatedDesigns[i].x4, evaluatedDesigns[i].x5];
+    var design = [];
+    for (var j = 1; j <= numParams; j++){
+      design.push(evaluatedDesigns[i]["x" + j]);
+    }
     var indexHypercube = whichHypercube(design, numSubdivisions);
     if (!hyperCubesCovered.has(indexHypercube)){
       hyperCubesCovered.add(whichHypercube(design, numSubdivisions));
     }
   }
-
-  console.log(hyperCubesCovered);
   return hyperCubesCovered.size / (numSubdivisions ** numParams);
 }
 
@@ -2187,7 +2101,7 @@ function runMOBO(){
   moboUsed = true;
   progressBarFinished = false;
 
-  var waitTime = 5; //s, this should be the same as in the python script
+  var waitTime = 6; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
   const progressInterval = setInterval(function () {
@@ -2218,13 +2132,18 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
   var processedY = [];
   console.log(evaluatedDesigns);
   for (var i = 0; i < evaluatedDesigns.length; i++){
-    processedX.push([evaluatedDesigns[i].x1, 
-                    evaluatedDesigns[i].x2, 
-                    evaluatedDesigns[i].x3, 
-                    evaluatedDesigns[i].x4, 
-                    evaluatedDesigns[i].x5]);
-    processedY.push([evaluatedDesigns[i].y1, 
-                    evaluatedDesigns[i].y2]);
+    var processedXArray = [];
+    for (var j = 1; j <= numParams; j++){
+      processedXArray.push(evaluatedDesigns[i]["x" + j]);
+    }
+    processedX.push(processedXArray);
+
+    var processedYArray = [];
+    for (var j = 1; j <= numObjs; j++){
+      processedYArray.push(evaluatedDesigns[i]["y" + j]);
+    }
+    processedY.push(processedYArray);
+
   }
 
   var processedRegions = [];
@@ -2275,14 +2194,19 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
 
         var proposedLocation = JSON.parse(result.message).proposed_location;
         var proposedLocationUnnormalized = unnormalizeParameters(proposedLocation, parameterBounds);
-        // console.log(proposedLocation);
+
         for (var i = 0; i < numParams; i++){
-          // console.log(parameterValues[i]);
           document.getElementById('param' + (i+1) + 'slider').value = proposedLocationUnnormalized[i];
           document.getElementById('param' + (i+1) + 'output').value = proposedLocationUnnormalized[i];
         }
 
-        $('.button').prop('disabled', false);
+        if (applicationID == ApplicationType.TUTORIAL){
+          $(".button").not("#button-delete-forbidden").prop("disabled", false);
+        }
+        else {
+          $('.button').not("#finish-button, #button-delete-forbidden").prop('disabled', false);
+        }
+        
         document.getElementById("test-button").disabled = false;
         document.getElementById("evaluation-button").disabled = false;
         
@@ -2297,7 +2221,6 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
 
         for (var i = 0; i < numParams; i++){
           document.getElementById('param' + (i+1) + 'slider').dispatchEvent(new Event('input'));
-          console.log("Hello");
         }
 
         progressBarFinished = true;
@@ -2315,16 +2238,27 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
 function finishExperiment(){
   var sureFinished = confirm("Are you sure you want to finish?");
   if (sureFinished){
+    var applicationIDLog = applicationID;
+    if (applicationID == ApplicationType.TUTORIAL){
+      applicationIDLog = "tutorial";
+    }
     $.ajax({
       url: "./cgi/finish_log.py",
       type: "post",
       datatype: "json",
       data: {   'participant_id'    :String(participantID),
-                'application_id'    :String(applicationID),
+                'application_id'    :String(applicationIDLog),
                 'condition_id'      :String(conditionID) },
       success: function(result) {
         submitReturned = true;
-        parent.window.location.href = "end.html";
+
+        if (tutorialFinished == "false"){
+          localStorage.setItem("tutorial-done", true);
+          parent.window.location.href = "instructions.html"
+        }
+        else if (tutorialFinished == "true") {
+          parent.window.location.href = "end.html";
+        }
       },
       error: function(result){
           console.log("Error in finishing experiment: " + result.message);
@@ -2335,8 +2269,6 @@ function finishExperiment(){
 
 // Add recent to note table
 function addRecentTable(){
-  // var formalChecked = $("#heuristic-formal-check", window.parent.task.document).prop("checked");
-
   var formalChecked;
   if (mostRecentType == 'pilot'){
     formalChecked = false; 
@@ -2448,9 +2380,6 @@ function showPointTable(){
     }
   }
 
-  console.log(designParamValid);
-  console.log(objectiveValValid);
-
   if (designParamValid && objectiveValValid){
     drawTableLine(designParameters);
     drawTablePoint(objectiveValues);
@@ -2463,22 +2392,25 @@ function drawTableLine(designParameters) {
     return d3.select(this).attr("value") == "table-line";
   }).remove();
 
-  var designParamParsed = [{id: "table-line",
-                              x1: designParameters[0],
-                              x2: designParameters[1],
-                              x3: designParameters[2],
-                              x4: designParameters[3],
-                              x5: designParameters[4]}];
+  var designParamDict = {};
+  designParamDict["id"] = "table-line";
+  for (var i = 0; i < numParams; i++){
+    designParamDict["x" + (i+1)] = designParameters[i];
+  }
+  var designParamParsed = [designParamDict];
 
   svgPcp
     .selectAll("myPath")
     .data(designParamParsed).enter()
     .append("path")
-    // .join("path")
       .attr("class", function (d) { return "line"; } ) // 2 class for each line: 'line' and the group name
       .attr("d", function(d) { return pathPcp(d);})
       .attr("value", function (d) {return d.id; })
-      .attr("design", function (d) {return [d.x1, d.x2, d.x3, d.x4, d.x5]; })
+      .attr("design", function (d) {var designData = [];
+        for (var i = 1; i <= numParams; i++){
+          designData.push(d["x" + i]);
+        }
+        return designData;})
       .style("fill", "none" )
       .style("stroke", function(d){ return("green")} )
       .style("opacity", 1.0)
@@ -2502,8 +2434,6 @@ function drawTablePoint(objectiveVals){
   const y = d3.scaleLinear()
     .domain(objectiveBounds[1])
     .range([ height, 0]);
-
-  // console.log(pilotTestResults);
 
   svgScatter.selectAll("dot")
     .data(objectiveValsParsed).enter()

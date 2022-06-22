@@ -31,13 +31,16 @@ pilotWaitTime = 3 #s
 # biases = np.array([0.8, 0.7])
 weightsDict = {"twitter": np.array([[0.9, 0.4, 1.3, 0.7, 0.4], [1.0, 0.6, 1.2, 0.5, 0.4]]),
             "stack-overflow": np.array([[1.2, 0.5, 0.4, 1.0, 0.6], [1.3, 0.7, 0.4, 0.9, 0.4]]),
-            "google-maps": np.array([[1.2, 0.5, 0.6, 1.0, 0.4], [1.3, 0.7, 0.4, 0.9, 0.4]])}
+            "google-maps": np.array([[1.2, 0.5, 0.6, 1.0, 0.4], [1.3, 0.7, 0.4, 0.9, 0.4]]),
+            "tutorial": np.array([[1.0, 0.8], [1.2, 0.9]])}
 centersDict = {"twitter": np.array([[0.9, 0.3, 0.8, 0.25, 0.25], [0.3, 0.35, 1.1, 0.75, 0.3]]),
                 "stack-overflow": np.array([[-0.1, 0.25, 0.7, 0.7, 0.8], [0.2, 0.75, 0.65, 0.1, 0.7]]),
-                "google-maps": np.array([[1.1, 0.75, 0.2, 0.3, 0.3], [0.8, 0.25, 0.3, 0.9, 0.35]])}
+                "google-maps": np.array([[1.1, 0.75, 0.2, 0.3, 0.3], [0.8, 0.25, 0.3, 0.9, 0.35]]),
+                "tutorial": np.array([[0.3, 0.35], [0.7, 0.65]])}
 biasesDict = {"twitter": np.array([0.7, 0.8]),
                 "stack-overflow": np.array([0.7, 0.8]),
-                "google-maps": np.array([0.8, 0.7])}
+                "google-maps": np.array([0.8, 0.7]),
+                "tutorial": np.array([0.7, 0.8])}
 
 # Define function for checking that required parameters have been submitted
 def checkFormData(data, expectedArgs):
@@ -65,6 +68,8 @@ def testPerformance(paramValues, testType, applicationID):
         application = "stack-overflow"
     elif applicationID == 2:
         application = "google-maps"
+    elif applicationID == 3:
+        application = "tutorial"
 
     # Testing mode
     if testType == 1:
@@ -109,6 +114,9 @@ else:
     
     result = { "obj_vals": objVals }
     message = json.dumps(result)
+
+    if int(applicationIDStr) == 3:
+        applicationIDStr = "tutorial"
 
     from db_config import db_path
     conn = sqlite3.connect(db_path)

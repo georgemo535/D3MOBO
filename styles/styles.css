@@ -337,3 +337,12 @@ h2 {
     transform: rotate(45deg);
     -webkit-transform: rotate(45deg);
 }
+
+#countdown-timer {
+    width: 100px;
+    margin: auto;
+    border: 3px; 
+    border-style: solid; 
+    border-color: black; 
+    padding: 1em;
+}

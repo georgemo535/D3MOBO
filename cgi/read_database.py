@@ -12,7 +12,7 @@ db_path = 'data/database.db'
 conn = sqlite3.connect(db_path)
 c = conn.cursor()
 
-c.execute("SELECT * FROM mobo")
+c.execute("SELECT * FROM function")
 
 rows = c.fetchall()
 

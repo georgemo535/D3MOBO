@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v6.js"></script>
+</head>
+<body>
+    <div style="text-align: center;">
+        <svg id="finger-point-interface"></svg>
+    </div>
+    <script>
+        var width = 420,
+    height = 475;
+
+    var svg = d3.select("#finger-point-interface")
+        .attr("width", width)
+        .attr("height", height);
+
+    var gPhone = svg.append("g")
+        .attr("id","g-phone")
+        .attr("transform", "translate(" + 0 + "," + 100 + ")");
+    
+    gPhone.append("svg:image")
+        .attr("xlink:href", "./images/tutorial/smartphone.svg")
+        .attr("width", 400)
+        .attr("height", 350)
+        .attr("x", 0)
+        .attr("y", 0);
+    
+    var gHand = svg.append("g")
+        .attr("id", "g-hand")
+        .attr("transform", "translate(" + 0 + "," + 50 + ")");
+    
+    gHand.append("svg:image")
+        .attr("xlink:href", "./images/tutorial/hand-up.svg")
+        .attr("width", 200)
+        .attr("height", 175)
+        .attr("x", 100)
+        .attr("y", 185);
+    
+    gHand.append('circle')
+        .attr("class", "radius-show")
+        .attr("id", "radius-show")
+        .attr('cx', 210)
+        .attr('cy', 200)
+        .attr('r', 0)
+        .style('fill', 'red')
+        .style("opacity", 0);   
+    
+    //
+    // Design callbacks
+    //
+
+    // Rate assumed to be [0,1]
+    function setForce(rate){
+        var minOpacity = 0.2;
+        var maxOpacity = 1.0;
+
+        var opacityValue = minOpacity + rate * (maxOpacity - minOpacity);
+
+        d3.select("#radius-show").style("opacity", opacityValue);
+    }
+
+    function setArea(rate){
+        var minRadius = 5.0;
+        var maxRadius = 25.0;
+
+        var radius = minRadius + rate * (maxRadius - minRadius);
+
+        d3.select("#radius-show").attr('r', radius);
+    }
+
+    </script>
+    <script>
+        $( window ).on('load', function() {
+            setTimeout(function() 
+            {   
+                var moboInterface = window.parent.parent.document.getElementById("mobo-interface");
+                moboInterface.contentWindow.document.getElementById("param1slider").addEventListener("input", function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p1 = (val - min) / (max - min);
+                    setForce(p1);
+                })
+
+                moboInterface.contentWindow.document.getElementById("param2slider").addEventListener("input", function () {
+                    var val = $(this).val();
+                    var max = $(this).prop('max');
+                    var min = $(this).prop('min');
+                    var p2 = (val - min) / (max - min);
+                    setArea(p2);
+                })
+
+                // Initialize
+                var p1El = moboInterface.contentWindow.document.getElementById("param1slider");
+                var p2El = moboInterface.contentWindow.document.getElementById("param2slider");
+
+                setForce(normalizedSliderVal(p1El));
+                setArea(normalizedSliderVal(p2El));
+
+            }, 200);
+        });
+
+        function normalizedSliderVal(el) {
+            var val = $(el).val();
+            var max = $(el).prop('max');
+            var min = $(el).prop('min');
+            return (val - min) / (max - min);
+        }
+    </script>
+</body>
+</html>

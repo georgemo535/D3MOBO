@@ -56,6 +56,10 @@ def initialize_model(train_x, train_obj):
 expectedArgs = ['design_params', 'objectives', 'forbidden_regions', 'participant_id', 'condition_id', 'application_id']
 formValuesDefined = checkFormData(formData, expectedArgs)
 
+if str(formData['application_id'].value) == "3":
+    num_params = 2
+    bounds = np.array([[0, 1] for i in range(num_params)])
+
 if not formValuesDefined:
     success = False
     message = "Form values not defined."
@@ -105,6 +109,9 @@ else:
     applicationIDStr = str(formData['application_id'].value)
     conditionIDStr = str(formData['condition_id'].value)
     timeStr = str(time.time())
+
+    if applicationIDStr == "3":
+        applicationIDStr = "tutorial"
 
     query = ''' INSERT INTO mobo VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
     c.execute(query, (participantIDStr, applicationIDStr, conditionIDStr, str(np.float_(designParamsRaw)), str(np.float_(objectiveValsRaw)), str(np.float_(forbiddenRegionsRaw)), str(result["proposed_location"]), timeStr))
