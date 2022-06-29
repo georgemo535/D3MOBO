@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Muli');
+
+        inputWarning {
+            display: none;
+            font-size: 10px;
+            color: red;
+            padding: 5px 0px 5px 0px;
+        }
+
+        h2 {
+            text-align: left;
+            margin: 30px 0px 10px 0px;
+        }
+
+        .panel {
+            position: absolute;
+            left: 50%;
+            top: 50px;
+            transform: translate(-50%, 0%);
+            padding: 10px;
+            color: black;
+            font: 13px 'Muli';
+            border: black;
+            border-style: solid;
+            border-width: 2px;
+            width: 500px;
+            /* text-align: center; */
+        }
+    </style>    
+    <script>
+        function onLinkClick(event){ 
+            event.preventDefault();
+
+            var valid = false;
+            var pId = $("#input-pid").val();
+            console.log(pId);
+            //url="paste your content here";
+            //document.getElementById('mylink').href= document.getElementById('hide')+url; 
+            if (pId != null && pId != "") {
+                document.getElementById("participantIdInputWarning").style.display = "none";
+
+                console.log(event.path[0].href);
+
+                var rawLink = event.path[0].href;
+                //var rawLink
+                var newLink = rawLink + "?participantId=" + pId;
+                window.open(newLink,'_blank');
+            } 
+            else 
+            {
+                document.getElementById("participantIdInputWarning").style.display = "block";
+                document.getElementById("participantIdInputWarning").innerHTML = "Please fill out participant id.";
+            }
+
+            return valid;
+        }
+    </script>
+</head>
+<body>
+<div class="panel">
+    <inputPanel>
+        <table style="margin: auto;">
+            <tr>
+                <td>
+                    <inputLabel>Participant ID:</inputLabel>
+                </td>
+                <td>
+                    <input id="input-pid" type="text" name="participantId"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                </td>
+                <td>
+                    <inputWarning id="participantIdInputWarning"></inputWarning>
+                </td>
+            <tr>
+        </table>
+    </inputPanel>
+
+    <h2>Pre-Study Questionnaires</h2>
+    <li><a href="https://forms.gle/iGmmEV6rBDMs3cSQ9" onclick="return onLinkClick(event);">Demographics</a></li>
+
+    <h2>Post-Condition Questionnaires</h2>
+    <li><a href="https://www.jjdudley.com/surveys/raw-nasatlx.html" onclick="return onLinkClick(event);">Raw NASA TLX (short version)</a></li>
+    <li><a href="https://forms.gle/hGUSAPnVEY985qfp9" onclick="return onLinkClick(event);">Post-Condition Questionnaire</a></li>
+    <li><a href="https://forms.gle/YWnNpWNTSiDdJUah6" onclick="return onLinkClick(event);">CSI</a></li>
+    <li><a href="https://forms.gle/ZfDueHZqdwTb7rA7A" onclick="return onLinkClick(event);">SUS</a></li>
+    
+    <h2>Design Task Questionnaires</h2>
+    <li><a href="https://forms.gle/CZySjJYe8c14EFt36" onclick="return onLinkClick(event);">Chicken Feed Design Questionnnaire</a></li>
+    <li><a href="https://forms.gle/TV7umebFkXPH7WMj9" onclick="return onLinkClick(event);">Heap Underflow Design Questionnnaire</a></li>
+    <li><a href="https://forms.gle/DNwKUU51SeMEUqzS9" onclick="return onLinkClick(event);">Yum Yum Design Questionnnaire</a></li>
+
+    <h2>Post-Study Questionnaires</h2>    
+    <li><a href="https://forms.gle/tY3rNd42c2BscJJ1A" onclick="return onLinkClick(event);">Post-Study Questionnaire</a></li>
+
+    <!-- Demographic Form: 
+
+    https://forms.gle/iGmmEV6rBDMs3cSQ9 
+    
+    Chicken Feed Parameter Questionnaire:
+    
+    https://forms.gle/CZySjJYe8c14EFt36 
+    
+    Heap Underflow Parameter Questionnaire:
+    
+    https://forms.gle/TV7umebFkXPH7WMj9 
+    
+    Yum Yum Parameter Questionnaire:
+    
+    https://forms.gle/DNwKUU51SeMEUqzS9 
+    
+    Post-Condition Questionnaire:
+    
+    https://forms.gle/hGUSAPnVEY985qfp9 
+    
+    Post-Study Questionnaire:
+    
+    https://forms.gle/tY3rNd42c2BscJJ1A 
+    
+    CSI:
+    
+    https://forms.gle/YWnNpWNTSiDdJUah6 
+    
+    SUS:
+    
+    https://forms.gle/ZfDueHZqdwTb7rA7A  -->
+
+</div>
+</body>
+</html>
+
