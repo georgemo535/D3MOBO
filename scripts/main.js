@@ -33,6 +33,10 @@ var numberMOBOUsed = 0;
 var timeFinishDisabled = 15;
 var timeFinishTask = 20;
 
+// Global progress interval timers
+var testProgressInterval;
+var moboProgressInterval;
+
 const ConditionType = {
   HYBRID: 0,
   DESIGNER: 1,
@@ -175,13 +179,15 @@ async function renderMoboInterface() {
     document.getElementById('button-delete-forbidden').style.display = 'none';
     document.getElementById('clear-selection-button').style.display = 'none';
 
-    document.getElementById('button-mobo').style.display = 'none';
+    // document.getElementById('button-mobo').style.display = 'none';
+    document.getElementById('mobo-request').style.display = 'none';
+    document.getElementById('mobo-stats').style.display = 'none';
 
-    document.getElementById('coverage-percent-heading').style.display = 'none';
-    document.getElementById('progress-coverage').style.display = 'none';
+    // document.getElementById('coverage-percent-heading').style.display = 'none';
+    // document.getElementById('progress-coverage').style.display = 'none';
 
-    document.getElementById('use-of-mobo-percent-heading').style.display = 'none';
-    document.getElementById('use-of-mobo').style.display = 'none';
+    // document.getElementById('use-of-mobo-percent-heading').style.display = 'none';
+    // document.getElementById('use-of-mobo').style.display = 'none';
 
     document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
     document.getElementById('test-button').addEventListener("click", runPilotTest);
@@ -199,11 +205,12 @@ async function renderMoboInterface() {
     document.getElementById('button-delete-forbidden').style.display = 'none';
     document.getElementById('clear-selection-button').style.display = 'none';
 
-    document.getElementById('coverage-percent-heading').style.display = 'none';
-    document.getElementById('progress-coverage').style.display = 'none';
+    // document.getElementById('coverage-percent-heading').style.display = 'none';
+    // document.getElementById('progress-coverage').style.display = 'none';
 
-    document.getElementById('use-of-mobo-percent-heading').style.display = 'none';
-    document.getElementById('use-of-mobo').style.display = 'none';
+    // document.getElementById('use-of-mobo-percent-heading').style.display = 'none';
+    // document.getElementById('use-of-mobo').style.display = 'none';
+    document.getElementById('mobo-stats').style.display = 'none';
 
     document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
     document.getElementById('button-mobo').addEventListener("click", runMOBO);
@@ -341,7 +348,7 @@ const svgWidth = 450;
 const svgHeight = 370;
 
 // set the dimensions and margins of the graph
-const margin = {top: 20, right: 50, bottom: 40, left: 50},
+const margin = {top: 30, right: 50, bottom: 40, left: 50},
 width = svgWidth - margin.left - margin.right,
 height = svgHeight - margin.top - margin.bottom;
 
@@ -384,6 +391,7 @@ const tooltipScatter = d3.select("#scatter")
 .style("border-radius", "5px")
 .style("padding", "5px")
 .style("font-size", "10px")
+.style("text-anchor","middle")
 .html("Objectives:")
 .style("visibility", "hidden")
 
@@ -427,12 +435,42 @@ const highlightPcp = function(event, d){
     .duration(200)
     .style("opacity", "0.8")
     .attr("r", 7)
+  
+  
+  dVals = d3.select(this).attr("design").split(',');
+  dValsUnnorm = unnormalizeParameters(("[" + d3.select(this).attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds);
 
-  tooltipPcp.html(String(unnormalizeParameters(("[" + d3.select(this).attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
-    .style("opacity", 1)
-    .style("left", 25 + "px")
-    .style("top", -25 + "px")
-    .style("visibility", "visible")
+  var xStep = width/(dVals.length - 1);
+  var pvalTooltipGroup = svgPcp.append("g")
+                               .attr("class","pcp-pval-tooltip");
+  
+  for (var i = 0; i < dVals.length; i++) {    
+
+    pvalTooltipGroup.append("rect")
+    .style("fill", "lightblue" )
+    .style("stroke", "black" )
+    .attr('stroke-width', '1')
+    .attr('shape-rendering', 'crispedges')
+    .attr("width", 40)
+    .attr("height", 15)    
+    .attr("x", i * xStep - 20)
+    .attr("y", (1-dVals[i])*height - 10);
+
+    pvalTooltipGroup.append("text")
+      .attr("text-anchor","middle")
+      .style("font-size", "10px")
+      .style("padding", "5px")
+      .attr("x", i * xStep)
+      .attr("y", (1-dVals[i])*height)
+      .text(dValsUnnorm[i]);
+  }
+
+
+  // tooltipPcp.html(String(unnormalizeParameters(("[" + d3.select(this).attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
+  //   .style("opacity", 1)
+  //   .style("left", 25 + "px")
+  //   .style("top", -25 + "px")
+  //   .style("visibility", "visible")
   
   // console.log(event.x);
   // console.log(event.y);
@@ -486,6 +524,8 @@ const doNotHighlightPcp = function(event, d){
     .style("opacity", 0.8)
     .attr("r", 5)
   
+  d3.selectAll(".pcp-pval-tooltip").remove();
+
   tooltipPcp.style("visibility", "hidden");
   tooltipScatter.style("visibility", "hidden");
 }
@@ -678,6 +718,12 @@ function drawDesignLine() {
 
 // Function to draw the guiding line that follows the sliders
 const drawGuidingLine = function(event){
+
+  // Clear objective values, and reset progress bars
+  document.getElementById("test-result-values").innerHTML = "&nbsp";
+  document.getElementById("test-progress").value = 0;
+  document.getElementById("mobo-progress").value = 0;
+
   var paramSliders = []
   for (var i = 0; i < numParams; i++){
     var valueSlider = document.getElementById('param' + (i+1) + 'slider').value;
@@ -750,11 +796,39 @@ const highlightScatter = function(event, d){
   
   correspondingLine.raise();
 
-  tooltipPcp.html(String(unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
-  .style("opacity", 1)
-  .style("left", 25 + "px")
-  .style("top", -25 + "px")
-  .style("visibility", "visible")
+  // tooltipPcp.html(String(unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds)).split(',').join(', '))
+  // .style("opacity", 1)
+  // .style("left", 25 + "px")
+  // .style("top", -25 + "px")
+  // .style("visibility", "visible")
+
+  dVals = correspondingLine.attr("design").split(',');
+  dValsUnnorm = unnormalizeParameters(("[" + correspondingLine.attr("design") + "]").match(/\d+(?:\.\d+)?/g).map(Number), parameterBounds);
+
+  var xStep = width/(dVals.length - 1);
+  var pvalTooltipGroup = svgPcp.append("g")
+                               .attr("class","pcp-pval-tooltip");
+  
+  for (var i = 0; i < dVals.length; i++) {    
+
+    pvalTooltipGroup.append("rect")
+    .style("fill", "lightblue" )
+    .style("stroke", "black" )
+    .attr('stroke-width', '1')
+    .attr('shape-rendering', 'crispedges')
+    .attr("width", 40)
+    .attr("height", 15)    
+    .attr("x", i * xStep - 20)
+    .attr("y", (1-dVals[i])*height - 10);
+
+    pvalTooltipGroup.append("text")
+      .attr("text-anchor","middle")
+      .style("font-size", "10px")
+      .style("padding", "5px")
+      .attr("x", i * xStep)
+      .attr("y", (1-dVals[i])*height)
+      .text(dValsUnnorm[i]);
+  }
 }
 
 const onClickScatter = function(event, d){
@@ -824,6 +898,8 @@ const doNotHighlightScatter = function(event, d){
       return d3.select(this).attr("value") == "current";
   }).raise();
 
+  d3.selectAll(".pcp-pval-tooltip").remove();
+
   tooltipPcp.style("visibility", "hidden");
   tooltipScatter.style("visibility", "hidden");
 }
@@ -872,14 +948,14 @@ function drawScatter() {
     .style("fill", "orange")
 
   svgScatter.append("text")
-    .attr("text-anchor", "end")
-    .attr("x", width/2 + margin.left)
-    .attr("y", height + margin.top + 20)
+    .attr("text-anchor", "middle")
+    .attr("x", width/2)
+    .attr("y", height + margin.top)
     .text(objectiveNames[0])
     .style("font-size", "10px");
 
   svgScatter.append("text")
-    .attr("text-anchor", "end")
+    .attr("text-anchor", "middle")
     .attr("transform", "rotate(-90)")
     .attr("y", -margin.left + 20)
     .attr("x", -margin.top - height/2 + 20)
@@ -1851,9 +1927,9 @@ const TestType = {
 function runPilotTest() {
   console.log("runPilotTest");
 
-  document.getElementById("test-result").textContent = ""
-  var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
-  document.getElementById("test-result").innerHTML += progressBarHtml;
+  //document.getElementById("test-result").textContent = ""
+  //var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
+  //document.getElementById("test-result").innerHTML += progressBarHtml;
   $('.button').prop('disabled', true);
   document.getElementById("test-button").disabled = true;
   document.getElementById("evaluation-button").disabled = true;
@@ -1877,11 +1953,11 @@ function runPilotTest() {
   var waitTime = 3; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
-  const progressInterval = setInterval(function () {
+  testProgressInterval = setInterval(function () {
       document.getElementById("test-progress").value = progressVal;
       progressVal += progressStep; 
       if (progressVal > 100) {
-          clearInterval(progressInterval);
+          clearInterval(testProgressInterval);
       }
   }, 100);
 }
@@ -1890,9 +1966,9 @@ function runPilotTest() {
 function runFormalTest() {
   console.log("runFormalTest");
 
-  document.getElementById("test-result").textContent = ""
-  var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
-  document.getElementById("test-result").innerHTML += progressBarHtml;
+  //document.getElementById("test-result").textContent = ""
+  //var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
+  //document.getElementById("test-result").innerHTML += progressBarHtml;
   $('.button').prop('disabled', true);
   document.getElementById("test-button").disabled = true;
   document.getElementById("evaluation-button").disabled = true;
@@ -1912,11 +1988,11 @@ function runFormalTest() {
   var waitTime = 20; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
-  const progressInterval = setInterval(function () {
+  testProgressInterval = setInterval(function () {
       document.getElementById("test-progress").value = progressVal;
       progressVal += progressStep; 
       if (progressVal > 100) {
-          clearInterval(progressInterval);
+          clearInterval(testProgressInterval);
       }
   }, 100);
 
@@ -1942,7 +2018,12 @@ function getTestResult(paramVals, testType) {
 
         var objVals = unnormalizeObjectives(objValsNorm, objectiveBounds);
 
-        document.getElementById("test-result").innerHTML += "<br>" + (parseFloat(objVals[0]).toFixed(2) + " , " + parseFloat(objVals[1]).toFixed(2));
+        // Set progress complete
+        clearInterval(testProgressInterval);
+        document.getElementById("test-progress").value = 100;        
+
+        //document.getElementById("test-result").innerHTML += "<br>" + (parseFloat(objVals[0]).toFixed(2) + " , " + parseFloat(objVals[1]).toFixed(2));
+        document.getElementById("test-result-values").innerHTML = (parseFloat(objVals[0]).toFixed(2) + " , " + parseFloat(objVals[1]).toFixed(2));
         document.querySelectorAll(".button").disabled = false;
 
         if (applicationID == ApplicationType.TUTORIAL){
@@ -2085,6 +2166,11 @@ function progbar (instance) {
 // Function to run MOBO when clicked button
 function runMOBO(){
   console.log("runMOBO");
+
+  // Clear objective values, and reset test progress
+  document.getElementById("test-result-values").innerHTML = "&nbsp";
+  document.getElementById("test-progress").value = 0;
+
   document.getElementById("mobo-loading").textContent = ""
   var progressBarHtml = "<progress id='mobo-progress' value='0' max='100'></progress>";
   document.getElementById("mobo-loading").innerHTML += progressBarHtml;
@@ -2104,7 +2190,7 @@ function runMOBO(){
   var waitTime = 6; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
-  const progressInterval = setInterval(function () {
+  moboProgressInterval = setInterval(function () {
       document.getElementById("mobo-progress").value = progressVal;
       progressVal += progressStep; 
 
@@ -2119,7 +2205,7 @@ function runMOBO(){
       }
       else{
         if (progressVal >= 100) {
-          clearInterval(progressInterval);
+          clearInterval(moboProgressInterval);
         }
       }
   }, 100);
@@ -2223,6 +2309,8 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
           document.getElementById('param' + (i+1) + 'slider').dispatchEvent(new Event('input'));
         }
 
+        clearInterval(moboProgressInterval);
+        document.getElementById("mobo-progress").value = 100;        
         progressBarFinished = true;
         
         document.getElementById("evaluation-button").disabled = false;
