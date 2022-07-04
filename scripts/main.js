@@ -32,6 +32,7 @@ var numberMOBOUsed = 0;
 // Time variables
 var timeFinishDisabled = 15;
 var timeFinishTask = 20;
+var finishTimeMet = false;
 
 // Global progress interval timers
 var testProgressInterval;
@@ -121,7 +122,8 @@ async function renderMoboInterface() {
 
   document.getElementById("finish-button").disabled = true;
   setTimeout(() => {
-    document.getElementById("finish-button").disabled = false;}
+    document.getElementById("finish-button").disabled = false;
+    finishTimeMet = true;}
     , 1000 * 60 * timeFinishDisabled);
   
   setTimeout(
@@ -215,7 +217,8 @@ async function renderMoboInterface() {
     document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
     document.getElementById('button-mobo').addEventListener("click", runMOBO);
 
-    document.getElementById('test-button').style.display = 'none';
+    // document.getElementById('test-button').style.display = 'none';
+    document.getElementById("test-button").disabled = true;
     document.getElementById("evaluation-button").disabled = true;
 
     for (var i = 0; i < numParams; i++){
@@ -2030,10 +2033,21 @@ function getTestResult(paramVals, testType) {
           $(".button").not("#button-delete-forbidden").prop("disabled", false);
         }
         else {
-          $('.button').not("#finish-button, #button-delete-forbidden").prop('disabled', false);
+          if (!finishTimeMet){
+            $('.button').not("#finish-button, #button-delete-forbidden").prop('disabled', false);
+          }
+          else {
+            $('.button').not("#button-delete-forbidden").prop('disabled', false);
+          }
         }
 
-        document.getElementById("test-button").disabled = false;
+        if (conditionID == ConditionType.MOBO){
+          $("#test-button").prop("disabled", true);
+        }
+        else {
+          $("#test-button").prop("disabled", false);
+        }
+        
         document.getElementById("evaluation-button").disabled = false;
         
         if (testType == TestType.FORMAL){
@@ -2290,10 +2304,21 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
           $(".button").not("#button-delete-forbidden").prop("disabled", false);
         }
         else {
-          $('.button').not("#finish-button, #button-delete-forbidden").prop('disabled', false);
+          if (!finishTimeMet){
+            $('.button').not("#finish-button, #button-delete-forbidden").prop('disabled', false);
+          }
+          else {
+            $('.button').not("#button-delete-forbidden").prop('disabled', false);
+          }
+        }
+
+        if (conditionID == ConditionType.MOBO){
+          $("#test-button").prop("disabled", true);
+        }
+        else {
+          $("#test-button").prop("disabled", false);
         }
         
-        document.getElementById("test-button").disabled = false;
         document.getElementById("evaluation-button").disabled = false;
         
         var inputSliders = document.querySelectorAll(".slider");
