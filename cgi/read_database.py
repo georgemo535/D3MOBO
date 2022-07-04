@@ -12,7 +12,7 @@ db_path = 'data/database.db'
 conn = sqlite3.connect(db_path)
 c = conn.cursor()
 
-c.execute("SELECT * FROM function")
+c.execute("SELECT * FROM time")
 
 rows = c.fetchall()
 

@@ -48,7 +48,8 @@ const ApplicationType = {
   TWITTER: 0,
   STACKOVERFLOW: 1,
   GOOGLEMAPS: 2,
-  TUTORIAL: 3
+  TUTORIAL: 3,
+  CUSTOM: 'custom'
 }
 
 const ApplicationParams = {
@@ -84,15 +85,47 @@ async function renderMoboInterface() {
     timeFinishTask = 5;
   }
 
-  parameterNames = ApplicationParams[applicationID].parameters;
-  objectiveNames = ApplicationParams[applicationID].objectives;
-  parameterBounds = ApplicationParams[applicationID].xbounds;
-  objectiveBounds = ApplicationParams[applicationID].ybounds;
+  if (applicationID == ApplicationType.CUSTOM){
+    parameterNames = localStorage.getItem("parameter-names").split(",");
+    objectiveNames = localStorage.getItem("objective-names").split(",");
+
+    parameterBounds = [];
+    objectiveBounds = [];
+
+    var parameterBoundsUnprocessed = localStorage.getItem("parameter-bounds").split(",").map(Number);
+    var objectiveBoundsUnprocessed = localStorage.getItem("objective-bounds").split(",").map(Number);
+
+    console.log(parameterBoundsUnprocessed);
+    console.log(objectiveBoundsUnprocessed);
+
+    for (var i = 0; i < parameterBoundsUnprocessed.length; i+=2){
+      var boundPair = [parameterBoundsUnprocessed[i], parameterBoundsUnprocessed[i+1]];
+      parameterBounds.push(boundPair);
+    }
+    for (var i = 0; i < objectiveBoundsUnprocessed.length; i+=2){
+      objectiveBounds.push([objectiveBoundsUnprocessed[i], objectiveBoundsUnprocessed[i+1]]);
+    }
+
+    timeFinishDisabled = 0;
+    timeFinishTask = 100000;
+
+    document.getElementById("test-progress").style.visibility = 'hidden';
+    document.getElementById("mobo-progress").style.visibility = 'hidden';
+  }
+  else {
+    parameterNames = ApplicationParams[applicationID].parameters;
+    objectiveNames = ApplicationParams[applicationID].objectives;
+    parameterBounds = ApplicationParams[applicationID].xbounds;
+    objectiveBounds = ApplicationParams[applicationID].ybounds;
+  }
 
   numParams = parameterNames.length;
   numObjs = objectiveNames.length;
 
   console.log(parameterNames);
+  console.log(parameterBounds);
+  console.log(objectiveNames);
+  console.log(objectiveBounds);
 
   var midPoints = [];
   for (var i = 0; i < numParams; i++){
@@ -240,20 +273,27 @@ async function renderMoboInterface() {
   if (applicationID == ApplicationType.TUTORIAL){
     parent.task.document.getElementById('task-window').innerHTML = "<iframe src='finger-point.html' class='design-window' name='design'></iframe>";
   }
+  if (applicationID == ApplicationType.CUSTOM){
+    parent.task.document.getElementById('task-window').innerHTML = "";
+    var taskIFrame = parent.document.getElementById("task-interface");
+    taskIFrame.parentNode.removeChild(taskIFrame);
+  }
 
-  // Countdown Timer
-  var countDownSeconds = 0;
+  if (applicationID != ApplicationType.CUSTOM){
+    // Countdown Timer
+    var countDownSeconds = 0;
 
-  var setTimer = setInterval(function() {
-  countDownSeconds += 1;
-    
-  // Time calculations for days, hours, minutes and seconds
-  var minutes = Math.floor((countDownSeconds / 60));
-  var seconds = Math.floor((countDownSeconds % 60));
+    var setTimer = setInterval(function() {
+    countDownSeconds += 1;
+      
+    // Time calculations for days, hours, minutes and seconds
+    var minutes = Math.floor((countDownSeconds / 60));
+    var seconds = Math.floor((countDownSeconds % 60));
 
-  parent.task.document.getElementById("countdown-timer").innerHTML = minutes + "m " + seconds + "s ";
-    
-  }, 1000);
+    parent.task.document.getElementById("countdown-timer").innerHTML = minutes + "m " + seconds + "s ";
+      
+    }, 1000);
+  }
 }
 
 function readTextFile(file, callback) {

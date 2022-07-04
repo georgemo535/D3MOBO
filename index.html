@@ -61,6 +61,7 @@
             <option value="0">Twitter</option>
             <option value="1">Stack Overflow</option>
             <option value="2">Google Maps</option>
+            <option value="3">Custom</option>
           </select>
         </td>
       </tr>
@@ -83,8 +84,9 @@
         var applicationCondition = document.getElementById("application-conditions").value;
 
         var idValid = ((Number(participantID) > 0));
+        var customTrue = (Number(applicationCondition) == 3);
 
-        if (idValid) {
+        if (idValid && !customTrue) {
           localStorage.setItem("id", participantID);
           localStorage.setItem("exp-condition", experimentCondition);
           localStorage.setItem("app", applicationCondition);
@@ -92,6 +94,15 @@
 
           var url = "instructions.html";
           // var url = "tutorial.php";
+          location.href = url;
+        }
+        if (idValid && customTrue){
+          localStorage.setItem("id", participantID);
+          localStorage.setItem("exp-condition", 0);
+          localStorage.setItem("app", "custom");
+          localStorage.setItem("tutorial-done", true);
+
+          var url = "custom-settings.html";
           location.href = url;
         }
       }

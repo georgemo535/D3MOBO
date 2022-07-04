@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Settings Page</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <style>
+      body, html{
+        min-height: 100%;
+        height: 100%;
+        margin: 0px;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+      }
+
+      input[type=number] {
+        width: 25%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+      }
+
+      h1 {text-align: center;}
+
+      button {
+        margin:auto;
+        display:block;
+      }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  </head>
+  <body>
+      <br>
+       <div id="parameter-table-div" style="text-align: center;">
+            <table id="parameter-table" class="parameter-table" width="100%">
+                <caption>Design Parameters</caption>
+                <thead>  
+                    <tr>  
+                    <th id='record-parameter-name'> Parameter Name </th>  
+                    <th id='record-parameter-lower'> Lower Bound </th>  
+                    <th id='record-parameter-upper'> Upper Bound </th>  
+                    <th id='record-parameter-trash'> Delete </th>
+                    <th></th>
+                    </tr>  
+                </thead>  
+                <tbody>
+                </tbody>
+            </table>
+            <br>
+            <div>
+                <button class="button" id="add-record-button" onclick="addParameterTable()">Add Parameter</button>
+            </div>
+        </div>
+        <br>
+        <div id="objective-table-div" style="text-align: center;">
+            <table id="objective-table" class="objective-table" width="100%">
+                <caption>Design Objectives</caption>
+                <thead>  
+                    <tr>  
+                    <th id='record-objective-name'> Objective Name </th>  
+                    <th id='record-objective-lower'> Lower Bound </th>  
+                    <th id='record-objective-upper'> Upper Bound </th>  
+                    <th></th>
+                    </tr>  
+                </thead>  
+                <tbody>
+                    <tr>
+                        <td contenteditable='true' class='record-data' id='record-objective-name'></td>
+                        <td contenteditable='true' class='record-data' id='record-objective-lower'></td>
+                        <td contenteditable='true' class='record-data' id='record-objective-upper'></td>
+                    </tr>
+                    <tr>
+                        <td contenteditable='true' class='record-data' id='record-objective-name'></td>
+                        <td contenteditable='true' class='record-data' id='record-objective-lower'></td>
+                        <td contenteditable='true' class='record-data' id='record-objective-upper'></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <div>
+            <button class="button" id="finish-parameters" onclick="finishParamsObjs()">Finish</button>
+        </div>
+    <script>
+        function addParameterTable(){
+            var htmlNewRow = ""
+            htmlNewRow += "<tr>"
+            htmlNewRow += "<td contenteditable='true' class='record-data' id='record-parameter-name'></td>"
+
+            htmlNewRow += "<td contenteditable='true' class='record-data' id='record-parameter-lower'></td>"
+            
+            htmlNewRow += "<td contenteditable='true' class='record-data' id='record-parameter-upper'></td>"
+            
+            htmlNewRow += "<td id='record-data-buttons'>"
+            htmlNewRow += "<button class='record-delete' id='record-delete'><img src='./images/interface/delete.png'></button>"
+            htmlNewRow += "</td></tr>"
+            $("#parameter-table", window.document).append(htmlNewRow);  
+
+            $(window.document).on('click', ".record-delete", deleteParameterTable);
+        }
+
+        function deleteParameterTable(){
+            $(this).parents('tr').remove();
+        }
+
+        function finishParamsObjs(){
+            var noError = true;
+            var parameterNames = [];
+            var parameterBounds = [];
+            var objectiveNames = [];
+            var objectiveBounds = [];
+
+            var participantID = localStorage.getItem("id");
+            var conditionID = localStorage.getItem("exp-condition");
+            var applicationID = localStorage.getItem("app");
+
+            // Find all the parameter names and bounds
+            var tableParams = $("#parameter-table tbody");
+            
+            tableParams.find('tr').each(function() {
+                var $paramCols = $(this).find("td");
+                var paramRowEntries = [];
+
+                $.each($paramCols, function() {
+                    paramRowEntries.push($(this).text());
+                });
+                
+                var parameterName = paramRowEntries[0];
+                if (/^[A-Za-z0-9]+$/.test(parameterName)){
+                    parameterNames.push(parameterName);
+                    console.log("Hello");
+                }
+                else {
+                    noError = false;
+                }
+
+                var parameterLowerBound = paramRowEntries[1];
+                var parameterUpperBound = paramRowEntries[2];
+                var validLowerBound = (!isNaN(parseFloat(parameterLowerBound)) && isFinite(parameterLowerBound));
+                var validUpperBound = (!isNaN(parseFloat(parameterUpperBound)) && isFinite(parameterUpperBound));
+
+                if (validLowerBound && validUpperBound){
+                    if (parseFloat(parameterLowerBound) < parseFloat(parameterUpperBound)){
+                        var rowBounds = [parseFloat(parameterLowerBound), parseFloat(parameterUpperBound)];
+                        parameterBounds.push(rowBounds);
+                    }
+                    else {
+                       noError = false;
+                    }
+                }
+                else {
+                    noError = false;
+                }
+            });
+
+            // Find all the objective names and bounds
+            var tableObjs = $("#objective-table tbody");
+            
+            tableObjs.find('tr').each(function() {
+                var $objCols = $(this).find("td");
+                var objRowEntries = [];
+
+                $.each($objCols, function() {
+                    objRowEntries.push($(this).text());
+                });
+                
+                var objName = objRowEntries[0];
+                if (/^[A-Za-z0-9]+$/.test(objName)){
+                    objectiveNames.push(objName);
+                }
+                else {
+                    noError = false;
+                }
+
+                var objLowerBound = objRowEntries[1];
+                var objUpperBound = objRowEntries[2];
+                var validLowerBound = (!isNaN(parseFloat(objLowerBound)) && isFinite(objLowerBound));
+                var validUpperBound = (!isNaN(parseFloat(objUpperBound)) && isFinite(objUpperBound));
+
+                if (validLowerBound && validUpperBound){
+                    if (parseFloat(objLowerBound) < parseFloat(objUpperBound)){
+                        var rowBounds = [parseFloat(objLowerBound), parseFloat(objUpperBound)];
+                        objectiveBounds.push(rowBounds);
+                    }
+                    else {
+                       noError = false;
+                    }
+                }
+                else {
+                    noError = false;
+                }
+            });
+
+            // console.log(parameterNames);
+            // console.log(parameterBounds);
+            // console.log(objectiveNames);
+            // console.log(objectiveBounds);
+
+            if (parameterBounds.length != parameterNames.length && parameterBounds.length <= 1){
+                noError = false;
+            }
+
+            if (objectiveBounds.length != objectiveNames.length){
+                noError = false;
+            }
+            
+            if (noError){
+                localStorage.setItem("parameter-names", parameterNames);
+                localStorage.setItem("parameter-bounds", parameterBounds);
+                localStorage.setItem("objective-names", objectiveNames);
+                localStorage.setItem("objective-bounds", objectiveBounds);
+
+                localStorage.setItem("tutorial-done", true);
+
+                $.ajax({
+                    url: "./cgi/start_log.py",
+                    type: "post",
+                    datatype: "json",
+                    data: { 'participant_id'    :String(participantID),
+                            'application_id'    :String(applicationID),
+                            'condition_id'      :String(conditionID) },
+                    success: function(result) {
+                    submitReturned = true;
+
+                    var url = "main.php";
+                    location.href = url;
+                    },
+                    error: function(result){
+                        console.log("Error in finishing experiment: " + result.message);
+                    }
+                });
+            }
+            else {
+                alert("Invalid entry");
+            }
+
+            
+        }
+
+    </script>
+  </body>
+</html>
