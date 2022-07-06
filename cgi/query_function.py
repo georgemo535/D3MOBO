@@ -24,21 +24,16 @@ testWaitTime = 20 #s
 pilotWaitTime = 3 #s
 
 # Function configs
-# weights = np.array([[0.5, 0.6, 0.4, 0.7, 0.1], 
-#                     [1.0, 0.4, 0.8, 0.9, 1.2]])
-# centers = np.array([[-0.2, 0.6, 0.7, 0.3, 0.7],
-#                     [0.2, 0.4, 0.2, 1.2, 0.9]])
-# biases = np.array([0.8, 0.7])
 weightsDict = {"twitter": np.array([[0.9, 0.4, 1.3, 0.7, 0.4], [1.0, 0.6, 1.2, 0.5, 0.4]]),
             "stack-overflow": np.array([[1.2, 0.5, 0.4, 1.0, 0.6], [1.3, 0.7, 0.4, 0.9, 0.4]]),
             "google-maps": np.array([[1.2, 0.5, 0.6, 1.0, 0.4], [1.3, 0.7, 0.4, 0.9, 0.4]]),
             "tutorial": np.array([[1.0, 0.8], [1.2, 0.9]])}
 centersDict = {"twitter": np.array([[0.9, 0.3, 0.8, 0.25, 0.25], [0.3, 0.35, 1.1, 0.75, 0.3]]),
-                "stack-overflow": np.array([[-0.1, 0.25, 0.7, 0.7, 0.8], [0.2, 0.75, 0.65, 0.1, 0.7]]),
-                "google-maps": np.array([[1.1, 0.75, 0.2, 0.3, 0.3], [0.8, 0.25, 0.3, 0.9, 0.35]]),
+                "stack-overflow": np.array([[-0.1, 0.25, 0.7, 0.7, 0.65], [0.2, 0.75, 0.75, 0.1, 0.7]]),
+                "google-maps": np.array([[1.1, 0.75, 0.35, 0.3, 0.3], [0.8, 0.25, 0.3, 0.9, 0.25]]),
                 "tutorial": np.array([[0.3, 0.35], [0.7, 0.65]])}
 biasesDict = {"twitter": np.array([0.7, 0.8]),
-                "stack-overflow": np.array([0.7, 0.8]),
+                "stack-overflow": np.array([0.8, 0.7]),
                 "google-maps": np.array([0.8, 0.7]),
                 "tutorial": np.array([0.7, 0.8])}
 

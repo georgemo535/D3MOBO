@@ -190,8 +190,14 @@ async function renderMoboInterface() {
     document.getElementById('button-delete-forbidden').disabled = true;
     document.getElementById('button-delete-forbidden').addEventListener("click", deleteForbiddenRegion);
 
-    document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
-    document.getElementById('test-button').addEventListener("click", runPilotTest);
+    if (applicationID != ApplicationType.CUSTOM){
+      document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+      document.getElementById('test-button').addEventListener("click", runPilotTest);
+    }
+    else {
+      document.getElementById('evaluation-button').addEventListener("click", setApplicationParameters);
+      document.getElementById('test-button').addEventListener("click", setApplicationParameters);
+    }
 
     document.getElementById('button-mobo').addEventListener("click", runMOBO);
 
@@ -2172,6 +2178,45 @@ function getTestResult(paramVals, testType) {
           console.log("Error in getTestResult: " + result.message);
       }
   });
+}
+
+// Function to send parameters to application
+function setApplicationParameters() {
+  console.log("set application");
+
+  //document.getElementById("test-result").textContent = ""
+  //var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
+  //document.getElementById("test-result").innerHTML += progressBarHtml;
+  $('.button').prop('disabled', true);
+  document.getElementById("test-button").disabled = true;
+  document.getElementById("evaluation-button").disabled = true;
+  document.querySelectorAll("slider").disabled = true;
+
+  var paramVals = [];
+  var inputSliders = document.querySelectorAll(".slider:not(#confidence-slider)");
+  
+  console.log(inputSliders);
+
+  for (var i = 0; i < inputSliders.length; i++){
+    inputSliders[i].disabled = true;
+    var name = inputSliders[i].id;
+    var val = inputSliders[i].value;
+    console.log(name + ": " + val);
+    paramVals.push(val);
+  }
+
+  // getTestResult(paramVals, TestType.PILOT);
+
+  // var waitTime = 3; //s, this should be the same as in the python script
+  // var progressStep = 1 / waitTime * 10;
+  // var progressVal = 0;
+  // testProgressInterval = setInterval(function () {
+  //     document.getElementById("test-progress").value = progressVal;
+  //     progressVal += progressStep; 
+  //     if (progressVal > 100) {
+  //         clearInterval(testProgressInterval);
+  //     }
+  // }, 100);
 }
 
 // Function to get hypercube coverage - design coverage metric
