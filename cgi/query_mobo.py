@@ -15,12 +15,7 @@ from botorch.utils.multi_objective.pareto import is_non_dominated
 from botorch.utils.multi_objective.box_decompositions.dominated import DominatedPartitioning
 
 # Parameters
-num_params = 5
-num_objs = 2
-max_hypv = 2 ** num_objs
 alpha = 1e-2
-bounds = np.array([[0, 1] for i in range(num_params)])
-ref_point = torch.tensor([-1.0 for _ in range(num_objs)])
 
 # Initialize the basic reply message
 message = "Necessary objects imported."
@@ -53,12 +48,8 @@ def initialize_model(train_x, train_obj):
     model = SingleTaskGP(train_x, train_obj, outcome_transform=Standardize(m=train_obj.shape[-1]))
     return model
 
-expectedArgs = ['design_params', 'objectives', 'forbidden_regions', 'participant_id', 'condition_id', 'application_id']
+expectedArgs = ['design_params', 'objectives', 'forbidden_regions', 'participant_id', 'condition_id', 'application_id', 'num_params', 'num_objs']
 formValuesDefined = checkFormData(formData, expectedArgs)
-
-if str(formData['application_id'].value) == "3":
-    num_params = 2
-    bounds = np.array([[0, 1] for i in range(num_params)])
 
 if not formValuesDefined:
     success = False
@@ -73,6 +64,13 @@ else:
 
     forbiddenRegionsRaw = json.loads(formData['forbidden_regions'].value)
     forbiddenRegions = np.float_(forbiddenRegionsRaw)
+
+    num_params = int(json.loads(formData['num_params'].value))
+    bounds = np.array([[0, 1] for _ in range(num_params)])
+
+    num_objs = int(json.loads(formData['num_objs'].value))
+    ref_point = torch.tensor([-1.0 for _ in range(num_objs)])
+    max_hypv = 2 ** num_objs
 
     if len(designParams) == 0:
         result = { "proposed_location": list(np.around(np.random.uniform(size=num_params), 2))}
