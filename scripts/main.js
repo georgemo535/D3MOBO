@@ -2288,7 +2288,9 @@ function getMOBOResult(evaluatedDesigns, regionData, forbidRangeData){
                 'forbidden_regions'    : forbidRegionsJson,
                 'participant_id'    :String(participantID),
                 'application_id'    :String(applicationID),
-                'condition_id'      :String(conditionID) },
+                'condition_id'      :String(conditionID),
+                'num_params'        :String(numParams),
+                'num_objs'          :String(numObjs) },
       success: function(result) {
         submitReturned = true;
 
