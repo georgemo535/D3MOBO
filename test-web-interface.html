@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    <table>
+        <tr>
+            <td colspan="1" rowspan="2" style="text-align: center; vertical-align: top; padding-top: 30px;">
+                <h2 style="text-align: center; width: 100%;">Design Parameters</h2>
+                <div id="param-sliders" class="sliders" style="width: 300px;">
+                    <label for="param1slider">Param 1</label>
+                    <input type="range" min="0" max="100" value="50" step="1" class="slider" id="param1slider" name="param1" oninput="this.nextElementSibling.value = this.value">
+                    <output for="param1output">0.0</output>
+                    <label for="param2slider">Param 2</label>
+                    <input type="range" min="0" max="100" value="50" step="1" class="slider" id="param2slider" name="param2" oninput="this.nextElementSibling.value = this.value">
+                    <output for="param2output">0.0</output>
+                </div>
+                <br>
+                <br>
+                
+                <div id="mobo" style="text-align: center;">
+                    <label>IP Address:</label>
+                    <input id="server-ip-address"></input>
+                    <br>
+                    <label>Port:</label>
+                    <input id="server-port"></input>
+                    <br>
+                    <div class="tooltip">
+                        <button class="button" id="send-params-button" style="width: 210px;">Perform Evaluation</button>
+                        <span class="tooltiptext">This will give a more accurate result on the objectives, but will take much longer. Shows the result on the plots and below.</span>
+                    </div>                    
+                </div>
+            </td>
+        </tr>
+    </table>
+    <script>        
+        // Get test result from formal evaluation or pilot test
+        function sendEvalParams() {
+
+            var paramVals = [];
+            var inputSliders = document.querySelectorAll(".slider:not(#confidence-slider)");
+
+            for (var i = 0; i < inputSliders.length; i++){                
+                var name = inputSliders[i].id;
+                var val = inputSliders[i].value;
+                paramVals.push(val);
+            }
+
+            // var paramValsNorm = normalizeParameters(paramVals, parameterBounds);
+            var paramValsJson = JSON.stringify(paramVals);
+            // console.log(paramValsJson);
+
+            $.ajax({
+                // TODO take url and port from input
+                url: "http://127.0.0.1:4444/",
+                type: "post",
+                datatype: "text",   
+                async: true,                 
+                data: '{ "new_design_params": ' + paramValsJson + '}',                    
+                success: function(result) {
+                    console.log("Success in sendEvalParams: " + result.message);
+                },
+                error: function(result){
+                    // console.log("Error in sendEvalParams: " + result.message);
+                    console.log("Error in sendEvalParams");
+                }
+            });
+        }
+
+        $('#send-params-button').click(sendEvalParams);
+    </script>
+</body>
+</html>
