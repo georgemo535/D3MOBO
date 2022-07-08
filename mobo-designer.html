@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body onload="renderMoboInterfaceDesigner()">
+    <!-- <div class="wrapper"> -->
+    <table>
+        <tr>
+            <td colspan="1" rowspan="2" style="text-align: center; vertical-align: top; padding-top: 30px;">
+                <h2 style="text-align: center; width: 100%;">Design Parameters</h2>
+                <div id="param-sliders" class="sliders"></div>
+
+                <br>
+                <br>
+                
+                <div id="mobo" style="text-align: center;">
+                    <div class="tooltip">
+                        <button class="button" id="evaluation-button" style="width: 210px;">Perform Formal Evaluation</button>
+                        <span class="tooltiptext">This will give a more accurate result on the objectives, but will take much longer. Shows the result on the plots and below.</span>
+                    </div>
+
+                    <div class = "tooltip">
+                        <button class="button" id="test-button" style="width: 210px;">Perform Heuristic Evaluation</button>
+                        <span class="tooltiptext">This will give a less accurate result on the objectives, but will be quick. Shows the result on the plots and below.</span>
+                    </div>
+                    <div id="test-result">
+                        <!-- <progress id='test-progress' value='0' max='100'></progress> -->
+                        <div id="test-result-values">
+                            &nbsp
+                        </div>
+                    </div>
+
+                    <div id="mobo-request" style="padding: 10px 0px;">
+                    <div class="tooltip">
+                        <button class="button" id="button-mobo" style="width: 210px;">New Design from MOBO</button>
+                        <span class="tooltiptext">This will ask MOBO for a new promising design proposal which will be updated on the sliders.</span>
+                    </div>
+                    <div id="mobo-loading" style="text-align: center;">
+                        <progress id='mobo-progress' value='0' max='100'></progress>
+                    </div>
+                    </div>
+
+                    <div id="mobo-stats" style="padding: 20px 0px 0px 0px;">
+                    <div class="tooltip">
+                        <h3 id="coverage-percent-heading">Design Space Coverage:</h3>
+                        <div id="progress-coverage"></div>
+                        <span class="tooltiptext">This shows how much of the design space has been explored with formal evaluations.</span>
+                    </div>
+                    <div class="tooltip">
+                        <h3 id="use-of-mobo-percent-heading">Use of MOBO: </h3>
+                        <div id="use-of-mobo"></div>
+                        <span class="tooltiptext">This shows the percentage time that MOBO is used to get a design that is formally evaluated as opposed to manual design.</span>
+                    </div>
+                    </div>
+
+                    <br>
+                    <hr style="width: 90%;">
+                    <br>
+
+                    <div class="tooltip">
+                        <button class="button" id="finish-button" style="width: 210px;">Finish</button>
+                        <span class="tooltiptext">Finish the design process.</span> 
+                    </div>
+                </div>
+            </td>
+            <td colspan="1"><div id="pcp"></div></td>
+            <td colspan="1">
+                <div id="scatter"></div>
+                <div id="scatter-options">
+                    <input type="checkbox" id="heuristic-checkbox" style="vertical-align: sub;">Plot Heuristics</input>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <!-- <td><div id="scatter"></div></td> -->
+            <!-- <td colspan="1">
+
+
+
+            </td> -->
+            <td colspan="1"><div id="regions"></div></td>
+            <td colspan="1" style="vertical-align: top;">
+                <table style="width: 400px;">
+                    <tr><td><h3 id="forbidden-region-heading">Forbidden Region</h3></td><td><h3 id="forbidden-range-heading">Forbidden Range</h3></td></tr>
+                <tr><form action="#" id="forbidden-list">
+                    <td style="vertical-align: top;">
+                    <div id="forbidden-region-list"></div>
+                </td><td style="vertical-align: top;">
+                    <div id="forbidden-range-list"></div>
+                </td>
+                </form>
+                </tr><tr>
+                    <td colspan="2">
+                        <div id="confidence-slider-wrapper">
+                            <p><h3 id="confidence-value-heading">Confidence Value:</h3></p>
+                            <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="confidence-slider" oninput='this.nextElementSibling.value = this.value'>
+                            <output id="confidence-slider-value">0.5</output>
+                        </div>
+                    </td>
+                </tr>
+                </table>
+                <br>
+                <div class="tooltip">
+                    <button class="button" id="clear-selection-button">Clear</button>
+                    <span class="tooltiptext">Clear all selections.</span>
+                </div>
+                <div class="tooltip">
+                    <button class="button" id="button-delete-forbidden">Delete</button>
+                    <span class="tooltiptext">Delete the selected forbidden region or range.</span> 
+                </div>
+                <div class="tooltip">
+                    <button class="button" id="button-add-forbidden">Add New Forbidden Region</button>
+                    <span class="tooltiptext">Add a new forbidden region centered around the values currently on the sliders.</span> 
+                </div>
+            </td>
+        </tr>
+        <!-- <tr>
+            <td colspan="1"></td>
+            <td colspan="1" style="text-align:center;">
+                <div class="tooltip">
+                    <button class="button" id="finish-button">Finish</button>
+                    <span class="tooltiptext">Finish the design process.</span> 
+                </div>
+            </td>
+            <td colspan="1"></td>
+        </tr> -->
+    </table>
+
+    <!-- <hr> -->
+
+    <script src="https://d3js.org/d3.v6.js"></script>
+    <script src="scripts/designer.js"></script>
+    <!-- <script src="scripts/sliders.js"></script> -->
+</body>
+</html>
