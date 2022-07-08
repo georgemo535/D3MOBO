@@ -48,7 +48,8 @@ const ApplicationType = {
   TWITTER: 0,
   STACKOVERFLOW: 1,
   GOOGLEMAPS: 2,
-  TUTORIAL: 3
+  TUTORIAL: 3,
+  CUSTOM: 'custom'
 }
 
 const ApplicationParams = {
@@ -84,15 +85,47 @@ async function renderMoboInterface() {
     timeFinishTask = 5;
   }
 
-  parameterNames = ApplicationParams[applicationID].parameters;
-  objectiveNames = ApplicationParams[applicationID].objectives;
-  parameterBounds = ApplicationParams[applicationID].xbounds;
-  objectiveBounds = ApplicationParams[applicationID].ybounds;
+  if (applicationID == ApplicationType.CUSTOM){
+    parameterNames = localStorage.getItem("parameter-names").split(",");
+    objectiveNames = localStorage.getItem("objective-names").split(",");
+
+    parameterBounds = [];
+    objectiveBounds = [];
+
+    var parameterBoundsUnprocessed = localStorage.getItem("parameter-bounds").split(",").map(Number);
+    var objectiveBoundsUnprocessed = localStorage.getItem("objective-bounds").split(",").map(Number);
+
+    console.log(parameterBoundsUnprocessed);
+    console.log(objectiveBoundsUnprocessed);
+
+    for (var i = 0; i < parameterBoundsUnprocessed.length; i+=2){
+      var boundPair = [parameterBoundsUnprocessed[i], parameterBoundsUnprocessed[i+1]];
+      parameterBounds.push(boundPair);
+    }
+    for (var i = 0; i < objectiveBoundsUnprocessed.length; i+=2){
+      objectiveBounds.push([objectiveBoundsUnprocessed[i], objectiveBoundsUnprocessed[i+1]]);
+    }
+
+    timeFinishDisabled = 0;
+    timeFinishTask = 100000;
+
+    document.getElementById("test-progress").style.visibility = 'hidden';
+    document.getElementById("mobo-progress").style.visibility = 'hidden';
+  }
+  else {
+    parameterNames = ApplicationParams[applicationID].parameters;
+    objectiveNames = ApplicationParams[applicationID].objectives;
+    parameterBounds = ApplicationParams[applicationID].xbounds;
+    objectiveBounds = ApplicationParams[applicationID].ybounds;
+  }
 
   numParams = parameterNames.length;
   numObjs = objectiveNames.length;
 
   console.log(parameterNames);
+  console.log(parameterBounds);
+  console.log(objectiveNames);
+  console.log(objectiveBounds);
 
   var midPoints = [];
   for (var i = 0; i < numParams; i++){
@@ -157,8 +190,14 @@ async function renderMoboInterface() {
     document.getElementById('button-delete-forbidden').disabled = true;
     document.getElementById('button-delete-forbidden').addEventListener("click", deleteForbiddenRegion);
 
-    document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
-    document.getElementById('test-button').addEventListener("click", runPilotTest);
+    if (applicationID != ApplicationType.CUSTOM){
+      document.getElementById('evaluation-button').addEventListener("click", runFormalTest);
+      document.getElementById('test-button').addEventListener("click", runPilotTest);
+    }
+    else {
+      document.getElementById('evaluation-button').addEventListener("click", setApplicationParameters);
+      document.getElementById('test-button').addEventListener("click", setApplicationParameters);
+    }
 
     document.getElementById('button-mobo').addEventListener("click", runMOBO);
 
@@ -240,20 +279,27 @@ async function renderMoboInterface() {
   if (applicationID == ApplicationType.TUTORIAL){
     parent.task.document.getElementById('task-window').innerHTML = "<iframe src='finger-point.html' class='design-window' name='design'></iframe>";
   }
+  if (applicationID == ApplicationType.CUSTOM){
+    parent.task.document.getElementById('task-window').innerHTML = "";
+    var taskIFrame = parent.document.getElementById("task-interface");
+    taskIFrame.parentNode.removeChild(taskIFrame);
+  }
 
-  // Countdown Timer
-  var countDownSeconds = 0;
+  if (applicationID != ApplicationType.CUSTOM){
+    // Countdown Timer
+    var countDownSeconds = 0;
 
-  var setTimer = setInterval(function() {
-  countDownSeconds += 1;
-    
-  // Time calculations for days, hours, minutes and seconds
-  var minutes = Math.floor((countDownSeconds / 60));
-  var seconds = Math.floor((countDownSeconds % 60));
+    var setTimer = setInterval(function() {
+    countDownSeconds += 1;
+      
+    // Time calculations for days, hours, minutes and seconds
+    var minutes = Math.floor((countDownSeconds / 60));
+    var seconds = Math.floor((countDownSeconds % 60));
 
-  parent.task.document.getElementById("countdown-timer").innerHTML = minutes + "m " + seconds + "s ";
-    
-  }, 1000);
+    parent.task.document.getElementById("countdown-timer").innerHTML = minutes + "m " + seconds + "s ";
+      
+    }, 1000);
+  }
 }
 
 function readTextFile(file, callback) {
@@ -2132,6 +2178,45 @@ function getTestResult(paramVals, testType) {
           console.log("Error in getTestResult: " + result.message);
       }
   });
+}
+
+// Function to send parameters to application
+function setApplicationParameters() {
+  console.log("set application");
+
+  //document.getElementById("test-result").textContent = ""
+  //var progressBarHtml = "<progress id='test-progress' value='0' max='100'></progress>";
+  //document.getElementById("test-result").innerHTML += progressBarHtml;
+  $('.button').prop('disabled', true);
+  document.getElementById("test-button").disabled = true;
+  document.getElementById("evaluation-button").disabled = true;
+  document.querySelectorAll("slider").disabled = true;
+
+  var paramVals = [];
+  var inputSliders = document.querySelectorAll(".slider:not(#confidence-slider)");
+  
+  console.log(inputSliders);
+
+  for (var i = 0; i < inputSliders.length; i++){
+    inputSliders[i].disabled = true;
+    var name = inputSliders[i].id;
+    var val = inputSliders[i].value;
+    console.log(name + ": " + val);
+    paramVals.push(val);
+  }
+
+  // getTestResult(paramVals, TestType.PILOT);
+
+  // var waitTime = 3; //s, this should be the same as in the python script
+  // var progressStep = 1 / waitTime * 10;
+  // var progressVal = 0;
+  // testProgressInterval = setInterval(function () {
+  //     document.getElementById("test-progress").value = progressVal;
+  //     progressVal += progressStep; 
+  //     if (progressVal > 100) {
+  //         clearInterval(testProgressInterval);
+  //     }
+  // }, 100);
 }
 
 // Function to get hypercube coverage - design coverage metric

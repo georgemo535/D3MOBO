@@ -297,7 +297,21 @@ h2 {
     border-collapse: collapse;
     width: 100%;
     font-size: 11px;
-  }
+}
+
+#parameter-table-div {
+    border-collapse: collapse;
+    width: 50%;
+    font-size: 11px;
+    margin:auto;
+}
+
+#objective-table-div {
+    border-collapse: collapse;
+    width: 50%;
+    font-size: 11px;
+    margin:auto;
+}
 
 #record-table th {
     font-size: 11px;
@@ -305,14 +319,47 @@ h2 {
     border-spacing: 0px; 
 }
 
-
 #record-table td {
+    /* width: 100px; */
+    /* border:1px solid black; */
+    font-size: 11px;
+    text-align: left;
+    height: 15px;
+    border-bottom: 1px solid #ddd;
+    border-spacing: 0px; 
+}
+
+#parameter-table-div th {
+    font-size: 11px;
+    border-bottom: 1px solid #ddd;
+    border-spacing: 0px; 
+}
+
+#parameter-table-div td {
     /* width: 100px; */
     /* border:1px solid black; */
     font-size: 11px;
     text-align: left;
     border-bottom: 1px solid #ddd;
     border-spacing: 0px; 
+    height: 15px;
+}
+
+
+#objective-table-div th {
+    font-size: 11px;
+    border-bottom: 1px solid #ddd;
+    border-spacing: 0px; 
+}
+
+#objective-table-div td {
+    /* width: 100px; */
+    /* border:1px solid black; */
+    font-size: 11px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    border-spacing: 0px; 
+    height: 25px;
 }
 
 #record-data-heuristic {
@@ -400,4 +447,12 @@ h2 {
 
 #test-result-values {
     font-size: 12px;
+}
+
+#add-record-button {
+    margin: auto;
+}
+
+#finish-parameters {
+    margin: auto;
 }
