@@ -90,7 +90,7 @@ else:
             confidences = forbiddenRegions[:, -1]
 
         proposed_location = propose_location_general(designParams, objectiveVals, lower_bound_points, upper_bound_points,
-                                                    confidences, gpr, bounds, alpha, max_hypv, ref_point, n_restarts=10)
+                                                    confidences, gpr, bounds, alpha, max_hypv, ref_point, n_restarts=5)
         
         result = { "proposed_location": list(np.around((proposed_location), 2))}
     

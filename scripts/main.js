@@ -2286,7 +2286,7 @@ function runMOBO(){
   moboUsed = true;
   progressBarFinished = false;
 
-  var waitTime = 6; //s, this should be the same as in the python script
+  var waitTime = 10; //s, this should be the same as in the python script
   var progressStep = 1 / waitTime * 10;
   var progressVal = 0;
   moboProgressInterval = setInterval(function () {
